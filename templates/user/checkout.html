@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<h1>Оформление заказа</h1>
+
+<div class="checkout-layout">
+    <div class="checkout-form">
+        <form method="POST" action="{{ url_for('checkout') }}">
+            <div class="form-section">
+                <h2>Адрес доставки</h2>
+                {% if delivery_addresses %}
+                    {% for addr in delivery_addresses %}
+                    <label class="address-option">
+                        <input type="radio" name="delivery_address_id" value="{{ addr.id }}" {% if loop.first %}checked{% endif %} required>
+                        <div class="address-details">
+                            <strong>{{ addr.recipient_name }}</strong> ({{ addr.recipient_phone }})
+                            <p>{{ addr.full_address }}</p>
+                            {% if addr.is_default %}<span class="default-badge">По умолчанию</span>{% endif %}
+                        </div>
+                    </label>
+                    {% endfor %}
+                    <p><a href="{{ url_for('profile') }}">➕ Добавить новый адрес</a></p>
+                {% else %}
+                    <p class="warning">У вас нет сохраненных адресов. <a href="{{ url_for('profile') }}">Добавьте адрес</a></p>
+                {% endif %}
+            </div>
+
+            <div class="form-section">
+                <h2>Способ доставки</h2>
+                {% for method in delivery_methods %}
+                <label class="delivery-option">
+                    <input type="radio" name="delivery_method_id" value="{{ method.id }}" {% if loop.first %}checked{% endif %} required>
+                    <div class="delivery-details">
+                        <strong>{{ method.name }}</strong>
+                        <p>Стоимость: {{ "%.2f"|format(method.price) }} ₽</p>
+                        <p>Срок: {{ method.estimated_days_min }}-{{ method.estimated_days_max }} дня</p>
+                    </div>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="form-section">
+                <h2>Способ оплаты</h2>
+                {% for method in payment_methods %}
+                <label class="payment-option">
+                    <input type="radio" name="payment_method_id" value="{{ method.id }}" {% if loop.first %}checked{% endif %} required>
+                    <span>{{ method.name }}</span>
+                </label>
+                {% endfor %}
+            </div>
+
+            <div class="form-section">
+                <h2>Комментарий к заказу</h2>
+                <textarea name="comment" rows="3" placeholder="Дополнительная информация..." class="comment-input"></textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-lg">Подтвердить заказ</button>
+        </form>
+    </div>
+
+    <div class="checkout-summary">
+        <h2>Ваш заказ</h2>
+        <div class="order-items">
+            {% for item in cart_items %}
+            <div class="order-item">
+                <span class="item-name">{{ item.name }} x {{ item.quantity }}</span>
+                <span class="item-price">{{ "%.2f"|format(item.item_total) }} ₽</span>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="order-totals">
+            <div class="total-line">
+                <span>Товары:</span>
+                <span>{{ "%.2f"|format(total) }} ₽</span>
+            </div>
+            <div class="total-line">
+                <span>Доставка:</span>
+                <span id="delivery-price">0 ₽</span>
+            </div>
+            <div class="total-line grand-total">
+                <strong>Итого:</strong>
+                <strong id="grand-total">{{ "%.2f"|format(total) }} ₽</strong>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const deliveryRadios = document.querySelectorAll('input[name="delivery_method_id"]');
+    const deliveryPriceSpan = document.getElementById('delivery-price');
+    const grandTotalSpan = document.getElementById('grand-total');
+    const subtotal = {{ total }};
+    
+    function updateTotal() {
+        let deliveryPrice = 0;
+        for (const radio of deliveryRadios) {
+            if (radio.checked) {
+                deliveryPrice = parseFloat(radio.closest('.delivery-option').querySelector('.delivery-details p').textContent.match(/[\d.]+/)[0]);
+                break;
+            }
+        }
+        if (subtotal >= 1500) deliveryPrice = 0;
+        deliveryPriceSpan.textContent = deliveryPrice + ' ₽';
+        grandTotalSpan.textContent = (subtotal + deliveryPrice).toFixed(2) + ' ₽';
+    }
+    
+    for (const radio of deliveryRadios) {
+        radio.addEventListener('change', updateTotal);
+    }
+    updateTotal();
+</script>
+{% endblock %}

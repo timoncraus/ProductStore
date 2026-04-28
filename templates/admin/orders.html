@@ -1,0 +1,142 @@
+{% extends "base.html" %} {% block title %}Управление заказами{% endblock %} {%
+block content %}
+<h1>Управление заказами</h1>
+
+<div class="table-responsive">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>№ заказа</th>
+        <th>Пользователь</th>
+        <th>Сумма</th>
+        <th>Статус</th>
+        <th>Оплата</th>
+        <th>Дата</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td>{{ order.order_number }}</td>
+        <td>{{ order.username }}</td>
+        <td>{{ order.total_amount }} ₽</td>
+        <td>
+          <form
+            method="POST"
+            action="{{ url_for('update_order_status', order_id=order.id) }}"
+          >
+            <select name="status_id" onchange="this.form.submit()">
+              <option
+                value="1"
+                {%
+                if
+                order.status_id=""
+                ="1"
+                %}selected{%
+                endif
+                %}
+              >
+                Новый
+              </option>
+              <option
+                value="2"
+                {%
+                if
+                order.status_id=""
+                ="2"
+                %}selected{%
+                endif
+                %}
+              >
+                Ожидает оплаты
+              </option>
+              <option
+                value="3"
+                {%
+                if
+                order.status_id=""
+                ="3"
+                %}selected{%
+                endif
+                %}
+              >
+                Оплачен
+              </option>
+              <option
+                value="4"
+                {%
+                if
+                order.status_id=""
+                ="4"
+                %}selected{%
+                endif
+                %}
+              >
+                В обработке
+              </option>
+              <option
+                value="5"
+                {%
+                if
+                order.status_id=""
+                ="5"
+                %}selected{%
+                endif
+                %}
+              >
+                Отправлен
+              </option>
+              <option
+                value="6"
+                {%
+                if
+                order.status_id=""
+                ="6"
+                %}selected{%
+                endif
+                %}
+              >
+                Доставлен
+              </option>
+              <option
+                value="7"
+                {%
+                if
+                order.status_id=""
+                ="7"
+                %}selected{%
+                endif
+                %}
+              >
+                Завершён
+              </option>
+              <option
+                value="8"
+                {%
+                if
+                order.status_id=""
+                ="8"
+                %}selected{%
+                endif
+                %}
+              >
+                Отменён
+              </option>
+            </select>
+          </form>
+        </td>
+        <td>{{ order.payment_method_name }}</td>
+        <td>
+          {{ order.created_at.strftime('%d.%m.%Y') if order.created_at else '-'
+          }}
+        </td>
+        <td>
+          <a href="#" class="btn-view">👁️</a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

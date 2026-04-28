@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Продуктовый магазин{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h1>Добро пожаловать в Продуктовый магазин!</h1>
+    <p>Свежие продукты высокого качества с доставкой на дом</p>
+    <a href="{{ url_for('catalog') }}" class="btn btn-primary">Перейти в каталог</a>
+</div>
+
+<div class="categories-section">
+    <h2>Популярные категории</h2>
+    <div class="category-grid">
+        {% for category in categories %}
+        <div class="category-card">
+            <a href="{{ url_for('catalog', category=category.id) }}">
+                <img src="{{ category.image_url or '/static/images/categories/default-category.jpg' }}" 
+                     alt="{{ category.name }}" 
+                     class="category-image"
+                     onerror="this.src='/static/images/categories/default-category.jpg'">
+                <h3>{{ category.name }}</h3>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="products-section">
+    <h2>Хиты продаж</h2>
+    <div class="product-grid">
+        {% for product in products %}
+        <div class="product-card">
+            <img src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
+                 alt="{{ product.name }}" 
+                 class="product-image"
+                 onerror="this.src='/static/images/products/default-product.jpg'">
+            <div class="product-info">
+                <h3 class="product-title">{{ product.name }}</h3>
+                <p class="product-category">{{ product.category_name }}</p>
+                <p class="product-price">{{ "%.2f"|format(product.price) }} ₽</p>
+                <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-sm">Подробнее</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

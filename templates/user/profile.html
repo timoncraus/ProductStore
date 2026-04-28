@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет{% endblock %}
+
+{% block content %}
+<h1>Личный кабинет</h1>
+
+<div class="profile-tabs">
+    <div class="tab-buttons">
+        <button class="tab-btn active" data-tab="info">👤 Личные данные</button>
+        <button class="tab-btn" data-tab="addresses">🏠 Мои адреса</button>
+        <button class="tab-btn" data-tab="orders">📦 Мои заказы</button>
+    </div>
+
+    <!-- Вкладка: Личные данные -->
+    <div class="tab-content active" id="tab-info">
+        <div class="profile-card">
+            <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Имя пользователя</label>
+                        <input type="text" value="{{ user.username }}" disabled>
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email or '' }}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Телефон</label>
+                        <input type="tel" name="phone" value="{{ user.phone or '' }}" placeholder="+79123456789">
+                    </div>
+                    <div class="form-group">
+                        <label>ФИО</label>
+                        <input type="text" name="full_name" value="{{ user.full_name or '' }}">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Дата регистрации</label>
+                    <input type="text" value="{% if user.created_at %}{{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at is not string else user.created_at }}{% else %}-{% endif %}" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Вкладка: Адреса -->
+    <div class="tab-content" id="tab-addresses">
+        <div class="profile-card">
+            <h3>Сохраненные адреса</h3>
+            {% if addresses %}
+                {% for addr in addresses %}
+                <div class="address-card">
+                    <div class="address-header">
+                        <strong>{{ addr.country_name }}, {{ addr.region_name }}, {{ addr.city_name }}</strong>
+                        {% if addr.is_default %}<span class="default-badge">По умолчанию</span>{% endif %}
+                    </div>
+                    <div class="address-detail">
+                        ул. {{ addr.street_name }}, д. {{ addr.house }}
+                        {% if addr.apartment %}, кв. {{ addr.apartment }}{% endif %}
+                        {% if addr.entrance %}, подъезд {{ addr.entrance }}{% endif %}
+                        {% if addr.floor %}, этаж {{ addr.floor }}{% endif %}
+                    </div>
+                    {% if addr.postal_code %}<div class="address-postal">Почтовый индекс: {{ addr.postal_code }}</div>{% endif %}
+                    <div class="address-actions">
+                        {% if not addr.is_default %}
+                            <a href="{{ url_for('set_default_address', address_id=addr.id) }}" class="btn-sm">Сделать основным</a>
+                        {% endif %}
+                        <a href="{{ url_for('delete_delivery_address', address_id=addr.id) }}" class="btn-sm btn-danger" onclick="return confirm('Удалить адрес?')">Удалить</a>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty-message">У вас нет сохраненных адресов</p>
+            {% endif %}
+            
+            <h3>Добавить новый адрес</h3>
+            <form method="POST" action="{{ url_for('add_delivery_address') }}" class="address-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Страна *</label>
+                        <input type="text" name="country" required value="Россия">
+                    </div>
+                    <div class="form-group">
+                        <label>Регион/Область *</label>
+                        <input type="text" name="region" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Город/Населенный пункт *</label>
+                        <input type="text" name="city" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Улица *</label>
+                        <input type="text" name="street" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Дом *</label>
+                        <input type="text" name="house" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Квартира</label>
+                        <input type="text" name="apartment">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Подъезд</label>
+                        <input type="text" name="entrance">
+                    </div>
+                    <div class="form-group">
+                        <label>Этаж</label>
+                        <input type="number" name="floor">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Почтовый индекс</label>
+                    <input type="text" name="postal_code">
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" name="is_default"> Использовать как адрес по умолчанию
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary">Добавить адрес</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Вкладка: Заказы -->
+    <div class="tab-content" id="tab-orders">
+        <div class="profile-card">
+            {% if orders %}
+            <div class="orders-list">
+                {% for order in orders %}
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-number">Заказ #{{ order.order_number }}</div>
+                        <div class="order-status">{{ order.status_name }}</div>
+                    </div>
+                    <div class="order-details">
+                        <div>📅 {{ order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at is not string else order.created_at }}</div>
+                        <div>💰 {{ "%.2f"|format(order.total_amount) }} ₽</div>
+                        <div>🚚 {{ order.delivery_address or '-' }}</div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="empty-message">У вас пока нет заказов</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const tabId = btn.dataset.tab;
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(`tab-${tabId}`).classList.add('active');
+        });
+    });
+</script>
+{% endblock %}

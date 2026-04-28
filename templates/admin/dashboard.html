@@ -1,0 +1,34 @@
+{% extends "base.html" %} {% block title %}Панель администратора{% endblock %}
+{% block content %}
+<h1>Панель управления</h1>
+
+<div class="dashboard-stats">
+  <div class="stat-card">
+    <h3>Активные товары</h3>
+    <div class="stat-number">{{ stats.products_count }}</div>
+  </div>
+  <div class="stat-card">
+    <h3>Пользователи</h3>
+    <div class="stat-number">{{ stats.users_count }}</div>
+  </div>
+  <div class="stat-card">
+    <h3>Заказов сегодня</h3>
+    <div class="stat-number">{{ stats.orders_today }}</div>
+  </div>
+  <div class="stat-card">
+    <h3>Выручка сегодня</h3>
+    <div class="stat-number">{{ stats.revenue_today }} ₽</div>
+  </div>
+</div>
+
+<div class="admin-menu">
+  <h2>Управление</h2>
+  <div class="menu-grid">
+    <a href="{{ url_for('admin_products') }}" class="menu-item">Товары</a>
+    <a href="{{ url_for('admin_categories') }}" class="menu-item">Категории</a>
+    <a href="{{ url_for('admin_packages') }}" class="menu-item">Упаковки</a>
+    <a href="{{ url_for('admin_orders') }}" class="menu-item">Заказы</a>
+    <a href="{{ url_for('list_tables') }}" class="menu-item">Таблицы БД</a>
+  </div>
+</div>
+{% endblock %}

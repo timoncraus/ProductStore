@@ -1,0 +1,154 @@
+{% extends "base.html" %} {% block title %}Добавление товара{% endblock %} {%
+block content %}
+<h1>Добавление нового товара</h1>
+
+<form method="POST" class="product-form">
+  <div class="form-group">
+    <label>Название товара *</label>
+    <input type="text" name="name" required class="form-control" />
+  </div>
+
+  <div class="form-group">
+    <label>Краткое описание</label>
+    <textarea name="short_description" rows="2" class="form-control"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label>Полное описание</label>
+    <textarea name="description" rows="4" class="form-control"></textarea>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Цена *</label>
+      <input
+        type="number"
+        name="price"
+        step="0.01"
+        required
+        class="form-control"
+      />
+    </div>
+    <div class="form-group">
+      <label>Старая цена</label>
+      <input type="number" name="old_price" step="0.01" class="form-control" />
+    </div>
+  </div>
+
+  <div class="form-row">
+    <div class="form-group">
+      <label>Единица измерения</label>
+      <select name="unit_id" class="form-control">
+        <option value="1">килограмм (кг)</option>
+        <option value="2">грамм (г)</option>
+        <option value="3">литр (л)</option>
+        <option value="4">миллилитр (мл)</option>
+        <option value="5">штука (шт)</option>
+        <option value="6">упаковка (уп)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Количество в единице</label>
+      <input
+        type="number"
+        name="quantity_per_unit"
+        step="0.01"
+        value="1"
+        class="form-control"
+      />
+    </div>
+  </div>
+
+  <div class="form-group">
+    <label>Категория *</label>
+    <select name="category_id" required class="form-control">
+      <option value="">Выберите категорию</option>
+      {% for cat in categories %}
+      <option value="{{ cat.id }}">{{ cat.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <h3>Пищевая ценность (на 100г)</h3>
+  <div class="form-row">
+    <div class="form-group">
+      <label>Калории</label>
+      <input type="number" name="calories_per_100g" class="form-control" />
+    </div>
+    <div class="form-group">
+      <label>Белки (г)</label>
+      <input
+        type="number"
+        name="protein_per_100g"
+        step="0.1"
+        class="form-control"
+      />
+    </div>
+    <div class="form-group">
+      <label>Жиры (г)</label>
+      <input
+        type="number"
+        name="fat_per_100g"
+        step="0.1"
+        class="form-control"
+      />
+    </div>
+    <div class="form-group">
+      <label>Углеводы (г)</label>
+      <input
+        type="number"
+        name="carbs_per_100g"
+        step="0.1"
+        class="form-control"
+      />
+    </div>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Сохранить товар</button>
+  <a href="{{ url_for('admin_products') }}" class="btn">Отмена</a>
+</form>
+
+<style>
+  .product-form {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  .form-group {
+    margin-bottom: 15px;
+  }
+  .form-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  .form-row .form-group {
+    flex: 1;
+  }
+  .form-control {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  h3 {
+    margin: 20px 0 15px;
+  }
+  .btn-primary {
+    background: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  .btn {
+    display: inline-block;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+</style>
+{% endblock %}

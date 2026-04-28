@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Каталог товаров{% endblock %}
+
+{% block content %}
+<h1>Каталог товаров</h1>
+
+<div class="catalog-layout">
+    <div class="catalog-sidebar">
+        <div class="filters">
+            <h3>Категории</h3>
+            <ul class="categories-list">
+                <li>
+                    <a href="{{ url_for('catalog') }}" {% if not category_id %}class="active"{% endif %}>
+                        📦 Все товары ({{ total }})
+                    </a>
+                </li>
+                {% for cat in categories %}
+                <li>
+                    <a href="{{ url_for('catalog', category=cat.id) }}" {% if category_id == cat.id %}class="active"{% endif %}>
+                        <img src="{{ cat.image_url or '/static/images/categories/default-category.jpg' }}" 
+                             alt="{{ cat.name }}" 
+                             class="category-icon-img"
+                             onerror="this.src='/static/images/categories/default-category.jpg'">
+                        {{ cat.name }} ({{ cat.product_count }})
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="search-form">
+            <h3>Поиск</h3>
+            <form method="GET" action="{{ url_for('catalog') }}">
+                {% if category_id %}
+                    <input type="hidden" name="category" value="{{ category_id }}">
+                {% endif %}
+                <input type="text" name="search" placeholder="Поиск товаров..." value="{{ search or '' }}">
+                <button type="submit">🔍 Найти</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="catalog-content">
+        <div class="products-header">
+            <p>Найдено товаров: <strong>{{ total }}</strong></p>
+        </div>
+
+        {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
+                     alt="{{ product.name }}" 
+                     class="product-image"
+                     onerror="this.src='/static/images/products/default-product.jpg'">
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-category">{{ product.category_name }}</p>
+                    <p class="product-price">{{ "%.2f"|format(product.price) }} ₽</p>
+                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-sm">Подробнее</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('catalog', page=page-1, category=category_id, search=search) }}">← Назад</a>
+            {% endif %}
+            <span>Страница {{ page }} из {{ total_pages }}</span>
+            {% if page < total_pages %}
+            <a href="{{ url_for('catalog', page=page+1, category=category_id, search=search) }}">Вперёд →</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>😕 Товары не найдены</p>
+            <a href="{{ url_for('catalog') }}" class="btn">Сбросить фильтры</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

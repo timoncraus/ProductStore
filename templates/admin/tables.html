@@ -1,0 +1,19 @@
+{% extends "base.html" %} {% block title %}Управление таблицами БД{% endblock %}
+{% block content %}
+<h1>Управление таблицами базы данных</h1>
+<p>Всего таблиц: {{ tables|length }}</p>
+
+<div class="tables-grid">
+  {% for table in tables %}
+  <div class="table-card">
+    <h3>{{ table.name }}</h3>
+    <p>Записей: {{ table.rows }}</p>
+    <a
+      href="{{ url_for('view_table', table_name=table.name) }}"
+      class="btn btn-sm"
+      >Управлять</a
+    >
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
