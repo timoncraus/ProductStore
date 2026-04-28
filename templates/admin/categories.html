@@ -6,7 +6,6 @@
   <h3>Добавить категорию</h3>
   <form method="POST" action="{{ url_for('add_row', table_name='category') }}">
     <input type="text" name="name" placeholder="Название категории" required />
-    <input type="text" name="slug" placeholder="slug" />
     <textarea name="description" placeholder="Описание"></textarea>
     <select name="parent_id">
       <option value="">Родительская категория</option>

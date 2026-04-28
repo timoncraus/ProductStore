@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Поиск товаров{% endblock %}
+
+{% block content %}
+<h1>Поиск товаров</h1>
+
+<div class="search-page-container">
+    <div class="search-form-large">
+        <form method="GET" action="{{ url_for('catalog.search_page') }}">
+            <div class="search-input-group">
+                <input type="text" name="q" placeholder="Введите название товара..." value="{{ query or '' }}" class="search-input">
+                <button type="submit" class="btn btn-primary">🔍 Найти</button>
+            </div>
+        </form>
+    </div>
+
+    {% if query %}
+        <div class="search-results-header">
+            <p>Результаты поиска по запросу: <strong>"{{ query }}"</strong></p>
+            <p>Найдено товаров: <strong>{{ total }}</strong></p>
+        </div>
+
+        {% if products %}
+        <div class="product-grid">
+            {% for product in products %}
+            <div class="product-card">
+                <img src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
+                     alt="{{ product.name }}" 
+                     class="product-image"
+                     onerror="this.src='/static/images/products/default-product.jpg'">
+                <div class="product-info">
+                    <h3 class="product-title">{{ product.name }}</h3>
+                    <p class="product-category">{{ product.category_name }}</p>
+                    <p class="product-price">{{ "%.2f"|format(product.price) }} ₽</p>
+                    <a href="{{ url_for('catalog.product_detail', product_id=product.id) }}" class="btn btn-sm">Подробнее</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination">
+            {% if page > 1 %}
+            <a href="{{ url_for('catalog.search_page', q=query, page=page-1) }}">← Назад</a>
+            {% endif %}
+            <span>Страница {{ page }} из {{ total_pages }}</span>
+            {% if page < total_pages %}
+            <a href="{{ url_for('catalog.search_page', q=query, page=page+1) }}">Вперёд →</a>
+            {% endif %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>😕 По вашему запросу "{{ query }}" ничего не найдено</p>
+            <p class="search-suggestion">Попробуйте изменить поисковый запрос или <a href="{{ url_for('catalog.catalog') }}">перейдите в каталог</a></p>
+        </div>
+        {% endif %}
+    {% else %}
+        <div class="search-placeholder">
+            <div class="search-icon-large">🔍</div>
+            <p>Введите ключевое слово для поиска товаров</p>
+            <p class="search-hint">Например: "молоко", "хлеб", "яблоки"</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -14,7 +14,7 @@
     <div class="product-detail-info">
         <h1>{{ product.name }}</h1>
         <p class="product-category">
-            <a href="{{ url_for('catalog', category=product.category_id) }}">{{ product.category_name }}</a>
+            <a href="{{ url_for('catalog.catalog', category=product.category_id) }}">{{ product.category_name }}</a>
         </p>
         
         <div class="product-detail-price">
@@ -41,7 +41,7 @@
         {% endif %}
 
         <div class="product-actions">
-            <form method="POST" action="{{ url_for('add_to_cart') }}">
+            <form method="POST" action="{{ url_for('cart.add_to_cart') }}">
                 <input type="hidden" name="product_id" value="{{ product.id }}">
                 <div class="quantity-selector">
                     <label>Количество:</label>
@@ -51,16 +51,6 @@
                     🛒 Добавить в корзину
                 </button>
             </form>
-            
-            {% if in_wishlist %}
-                <a href="{{ url_for('remove_from_wishlist', product_id=product.id) }}" class="btn btn-wishlist active">
-                    ❤️ В избранном
-                </a>
-            {% else %}
-                <a href="{{ url_for('add_to_wishlist', product_id=product.id) }}" class="btn btn-wishlist">
-                    🤍 В избранное
-                </a>
-            {% endif %}
         </div>
     </div>
 </div>

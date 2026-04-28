@@ -24,11 +24,14 @@
 <div class="admin-menu">
   <h2>Управление</h2>
   <div class="menu-grid">
-    <a href="{{ url_for('admin_products') }}" class="menu-item">Товары</a>
-    <a href="{{ url_for('admin_categories') }}" class="menu-item">Категории</a>
-    <a href="{{ url_for('admin_packages') }}" class="menu-item">Упаковки</a>
-    <a href="{{ url_for('admin_orders') }}" class="menu-item">Заказы</a>
-    <a href="{{ url_for('list_tables') }}" class="menu-item">Таблицы БД</a>
+    <a href="{{ url_for('admin.products.products') }}" class="menu-item">Товары</a>
+    <a href="{{ url_for('admin.categories.categories') }}" class="menu-item">Категории</a>
+    <a href="{{ url_for('admin.users.users') }}" class="menu-item">Пользователи</a>
+    <a href="{{ url_for('admin.orders.orders') }}" class="menu-item">Заказы</a>
+    <a href="{{ url_for('admin.reference.countries') }}" class="menu-item">Страны</a>
+    <a href="{{ url_for('admin.reference.regions') }}" class="menu-item">Регионы</a>
+    <a href="{{ url_for('admin.reference.cities') }}" class="menu-item">Города (Населенные пункты)</a>
+    <a href="{{ url_for('admin.reference.streets') }}" class="menu-item">Улицы</a>
   </div>
 </div>
 {% endblock %}

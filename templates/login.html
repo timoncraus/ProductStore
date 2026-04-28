@@ -4,24 +4,81 @@
 
 {% block content %}
 <div class="form-container">
-    <h2>🔐 Вход в систему</h2>
+    <h2>Вход в систему</h2>
     
-    <form method="POST" action="{{ url_for('login') }}">
+    {% if wait_time and wait_time > 0 %}
+    <div class="alert alert-warning alert-main">
+        ⏱️ Внимание! Доступ временно заблокирован на {{ wait_time }} секунд из-за нескольких неудачных попыток.
+    </div>
+    {% endif %}
+    
+    {% if attempts_count and attempts_count > 0 and not wait_time %}
+    <div class="alert alert-info" role="alert">
+        🔐 Неудачных попыток: {{ attempts_count }}.<br> 
+        {% if attempts_count >= 3 %}
+        После 3 неудачных попыток будет задержка 5 секунд.<br>
+        {% endif %}
+        {% if attempts_count >= 5 %}
+        После 5 неудачных попыток будет задержка 10 секунд.<br>
+        {% endif %}
+        {% if attempts_count >= 10 %}
+        После 10 неудачных попыток будет задержка 15 секунд.<br>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+    <form method="POST" action="{{ url_for('main.login') }}" id="loginForm">
         <div class="form-group">
             <label for="username">Имя пользователя</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" 
+                   value="{{ form_data.username if form_data else '' }}" 
+                   required {% if wait_time and wait_time > 0 %}disabled{% endif %}>
         </div>
         
         <div class="form-group">
             <label for="password">Пароль</label>
-            <input type="password" id="password" name="password" required>
+            <input type="password" id="password" name="password" 
+                   required {% if wait_time and wait_time > 0 %}disabled{% endif %}>
+            <small class="form-hint">Пароль должен содержать минимум 9 символов, буквы, цифры и спецсимволы</small>
         </div>
         
-        <button type="submit" class="btn btn-primary btn-block">Войти</button>
+        <div class="form-group captcha-group">
+            <label>Капча *</label>
+            <div class="captcha-container">
+                <img src="data:image/png;base64,{{ captcha_image }}" alt="CAPTCHA" class="captcha-image" id="captchaImg">
+                <button type="button" class="btn-refresh-captcha" onclick="refreshCaptcha()" 
+                        data-refresh-url="{{ url_for('main.refresh_captcha') }}"
+                        {% if wait_time and wait_time > 0 %}disabled{% endif %}>
+                    <img src="{{ url_for('static', filename='icons/refresh.png') }}" alt="Обновить" class="icon">
+                </button>
+            </div>
+            <input type="text" id="captcha" name="captcha" placeholder="Введите символы с картинки" 
+                   required {% if wait_time and wait_time > 0 %}disabled{% endif %}>
+        </div>
+        
+        <button type="submit" class="btn btn-primary btn-block" {% if wait_time and wait_time > 0 %}disabled{% endif %}>
+            Войти
+        </button>
     </form>
     
     <p class="form-footer">
-        Нет аккаунта? <a href="{{ url_for('register') }}">Зарегистрироваться</a>
+        Нет аккаунта? <a href="{{ url_for('main.register') }}">Зарегистрироваться</a>
     </p>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+var refreshCaptchaUrl = "{{ url_for('main.refresh_captcha') }}";
+var waitTime = {{ wait_time|default(0) }};
+
+// Автоматическое обновление страницы после окончания блокировки
+if (waitTime > 0) {
+    setTimeout(function() {
+        location.reload();
+    }, waitTime * 1000);
+}
+</script>
+
+<script src="{{ url_for('static', filename='scripts/login.js') }}"></script>
 {% endblock %}

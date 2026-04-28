@@ -2,170 +2,332 @@
 
 {% block title %}Личный кабинет{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/profile.css') }}">
+{% endblock %}
+
 {% block content %}
-<h1>Личный кабинет</h1>
+<div class="profile-page">
+    <h1>Личный кабинет</h1>
 
-<div class="profile-tabs">
-    <div class="tab-buttons">
-        <button class="tab-btn active" data-tab="info">👤 Личные данные</button>
-        <button class="tab-btn" data-tab="addresses">🏠 Мои адреса</button>
-        <button class="tab-btn" data-tab="orders">📦 Мои заказы</button>
-    </div>
+    <div class="profile-tabs">
+        <div class="tab-buttons">
+            <button class="tab-btn active" data-tab="info">Личные данные</button>
+            <button class="tab-btn" data-tab="addresses">Мои адреса</button>
+            <button class="tab-btn" data-tab="orders">Мои заказы</button>
+        </div>
 
-    <!-- Вкладка: Личные данные -->
-    <div class="tab-content active" id="tab-info">
-        <div class="profile-card">
-            <form method="POST" action="{{ url_for('profile') }}" class="profile-form">
-                <div class="form-row">
+        <div class="tab-content active" id="tab-info">
+            <div class="profile-card">
+                <form method="POST" action="{{ url_for('profile.profile') }}" id="profileForm">
                     <div class="form-group">
-                        <label>Имя пользователя</label>
-                        <input type="text" value="{{ user.username }}" disabled>
+                        <label>Имя пользователя *</label>
+                        <input type="text" name="username" value="{{ user.username }}" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Имя</label>
+                            <input type="text" name="first_name" value="{{ user.first_name or '' }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Фамилия</label>
+                            <input type="text" name="last_name" value="{{ user.last_name or '' }}">
+                        </div>
                     </div>
                     <div class="form-group">
-                        <label>Email</label>
-                        <input type="email" name="email" value="{{ user.email or '' }}">
+                        <label>Email *</label>
+                        <input type="email" name="email" value="{{ user.email or '' }}" required>
                     </div>
-                </div>
-                <div class="form-row">
                     <div class="form-group">
                         <label>Телефон</label>
-                        <input type="tel" name="phone" value="{{ user.phone or '' }}" placeholder="+79123456789">
+                        <input type="tel" name="phone" value="{{ user.phone or '' }}" placeholder="+7XXXXXXXXXX">
                     </div>
                     <div class="form-group">
-                        <label>ФИО</label>
-                        <input type="text" name="full_name" value="{{ user.full_name or '' }}">
+                        <label>Дата регистрации</label>
+                        <input type="text" value="{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else '-' }}" disabled>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Дата регистрации</label>
-                    <input type="text" value="{% if user.created_at %}{{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at is not string else user.created_at }}{% else %}-{% endif %}" disabled>
-                </div>
-                <button type="submit" class="btn btn-primary">Сохранить изменения</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Вкладка: Адреса -->
-    <div class="tab-content" id="tab-addresses">
-        <div class="profile-card">
-            <h3>Сохраненные адреса</h3>
-            {% if addresses %}
-                {% for addr in addresses %}
-                <div class="address-card">
-                    <div class="address-header">
-                        <strong>{{ addr.country_name }}, {{ addr.region_name }}, {{ addr.city_name }}</strong>
-                        {% if addr.is_default %}<span class="default-badge">По умолчанию</span>{% endif %}
-                    </div>
-                    <div class="address-detail">
-                        ул. {{ addr.street_name }}, д. {{ addr.house }}
-                        {% if addr.apartment %}, кв. {{ addr.apartment }}{% endif %}
-                        {% if addr.entrance %}, подъезд {{ addr.entrance }}{% endif %}
-                        {% if addr.floor %}, этаж {{ addr.floor }}{% endif %}
-                    </div>
-                    {% if addr.postal_code %}<div class="address-postal">Почтовый индекс: {{ addr.postal_code }}</div>{% endif %}
-                    <div class="address-actions">
-                        {% if not addr.is_default %}
-                            <a href="{{ url_for('set_default_address', address_id=addr.id) }}" class="btn-sm">Сделать основным</a>
-                        {% endif %}
-                        <a href="{{ url_for('delete_delivery_address', address_id=addr.id) }}" class="btn-sm btn-danger" onclick="return confirm('Удалить адрес?')">Удалить</a>
-                    </div>
-                </div>
-                {% endfor %}
-            {% else %}
-                <p class="empty-message">У вас нет сохраненных адресов</p>
-            {% endif %}
-            
-            <h3>Добавить новый адрес</h3>
-            <form method="POST" action="{{ url_for('add_delivery_address') }}" class="address-form">
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Страна *</label>
-                        <input type="text" name="country" required value="Россия">
-                    </div>
-                    <div class="form-group">
-                        <label>Регион/Область *</label>
-                        <input type="text" name="region" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Город/Населенный пункт *</label>
-                        <input type="text" name="city" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Улица *</label>
-                        <input type="text" name="street" required>
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Дом *</label>
-                        <input type="text" name="house" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Квартира</label>
-                        <input type="text" name="apartment">
-                    </div>
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label>Подъезд</label>
-                        <input type="text" name="entrance">
-                    </div>
-                    <div class="form-group">
-                        <label>Этаж</label>
-                        <input type="number" name="floor">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Почтовый индекс</label>
-                    <input type="text" name="postal_code">
-                </div>
-                <div class="form-group">
-                    <label>
-                        <input type="checkbox" name="is_default"> Использовать как адрес по умолчанию
-                    </label>
-                </div>
-                <button type="submit" class="btn btn-primary">Добавить адрес</button>
-            </form>
-        </div>
-    </div>
-
-    <!-- Вкладка: Заказы -->
-    <div class="tab-content" id="tab-orders">
-        <div class="profile-card">
-            {% if orders %}
-            <div class="orders-list">
-                {% for order in orders %}
-                <div class="order-card">
-                    <div class="order-header">
-                        <div class="order-number">Заказ #{{ order.order_number }}</div>
-                        <div class="order-status">{{ order.status_name }}</div>
-                    </div>
-                    <div class="order-details">
-                        <div>📅 {{ order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at is not string else order.created_at }}</div>
-                        <div>💰 {{ "%.2f"|format(order.total_amount) }} ₽</div>
-                        <div>🚚 {{ order.delivery_address or '-' }}</div>
-                    </div>
-                </div>
-                {% endfor %}
+                    <button type="submit" class="btn btn-primary">Сохранить изменения</button>
+                </form>
             </div>
-            {% else %}
-            <p class="empty-message">У вас пока нет заказов</p>
-            {% endif %}
+        </div>
+
+        <div class="tab-content" id="tab-addresses">
+            <div class="profile-card">
+                <div class="addresses-header">
+                    <h3>Сохраненные адреса</h3>
+                    <button class="btn btn-sm btn-outline" id="showAddAddressBtn">+ Добавить адрес</button>
+                </div>
+                
+                {% if addresses %}
+                    {% for addr in addresses %}
+                    <div class="address-item">
+                        <div class="address-info">
+                            <div class="address-full">
+                                <strong>{{ addr.country_name }}, {{ addr.region_name }}, {{ addr.city_name }}</strong>
+                                <span>ул. {{ addr.street_name }}, д. {{ addr.house }}</span>
+                                {% if addr.apartment %}<span>кв. {{ addr.apartment }}</span>{% endif %}
+                                {% if addr.entrance %}<span>под. {{ addr.entrance }}</span>{% endif %}
+                                {% if addr.floor %}<span>эт. {{ addr.floor }}</span>{% endif %}
+                                {% if addr.postal_code %}<span>{{ addr.postal_code }}</span>{% endif %}
+                            </div>
+                            {% if addr.is_default %}
+                                <span class="default-badge">Основной</span>
+                            {% endif %}
+                        </div>
+                        <div class="address-actions">
+                            {% if not addr.is_default %}
+                                <a href="{{ url_for('profile.set_default_address', address_id=addr.id) }}" class="btn-link">Сделать основным</a>
+                            {% endif %}
+                            <a href="{{ url_for('profile.delete_delivery_address', address_id=addr.id) }}" class="btn-link btn-link-danger" onclick="return confirm('Удалить адрес?')">Удалить</a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-message">Нет сохраненных адресов</p>
+                {% endif %}
+                
+                <div id="addAddressForm" style="display: none;">
+                    <h3>Новый адрес</h3>
+                    <form method="POST" action="{{ url_for('profile.add_delivery_address') }}" id="addressForm">
+                        <div class="form-group">
+                            <label>Страна *</label>
+                            <input type="text" id="countryInput" placeholder="Начните вводить страну..." autocomplete="off">
+                            <input type="hidden" name="country_id" id="countryId">
+                            <div id="countrySuggestions" class="suggestions"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Регион/Область *</label>
+                            <input type="text" id="regionInput" placeholder="Начните вводить регион..." autocomplete="off" disabled>
+                            <input type="hidden" name="region_id" id="regionId">
+                            <div id="regionSuggestions" class="suggestions"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Город *</label>
+                            <input type="text" id="cityInput" placeholder="Начните вводить город..." autocomplete="off" disabled>
+                            <input type="hidden" name="city_id" id="cityId">
+                            <div id="citySuggestions" class="suggestions"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Улица *</label>
+                            <input type="text" id="streetInput" placeholder="Начните вводить улицу..." autocomplete="off" disabled>
+                            <input type="hidden" name="street_id" id="streetId">
+                            <div id="streetSuggestions" class="suggestions"></div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Дом *</label>
+                                <input type="text" name="house" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Квартира</label>
+                                <input type="text" name="apartment">
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Подъезд</label>
+                                <input type="text" name="entrance">
+                            </div>
+                            <div class="form-group">
+                                <label>Этаж</label>
+                                <input type="number" name="floor">
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Почтовый индекс</label>
+                            <input type="text" name="postal_code">
+                        </div>
+                        
+                        <label class="checkbox">
+                            <input type="checkbox" name="is_default"> Использовать как основной
+                        </label>
+                        
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">Добавить</button>
+                            <button type="button" id="cancelAddAddress" class="btn btn-outline">Отмена</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="tab-content" id="tab-orders">
+            <div class="profile-card">
+                {% if orders %}
+                    {% for order in orders %}
+                    <div class="order-item">
+                        <div class="order-header">
+                            <span class="order-number">Заказ #{{ order.order_number }}</span>
+                            <span class="order-status status-{{ order.status_id }}">{{ order.status_name }}</span>
+                        </div>
+                        <div class="order-info">
+                            <span>📅 {{ order.created_at.strftime('%d.%m.%Y') if order.created_at else '-' }}</span>
+                            <span>💰 {{ "%.2f"|format(order.total_amount) }} ₽</span>
+                        </div>
+                        {% if order.full_address %}
+                            <div class="order-address">📍 {{ order.full_address }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="empty-message">У вас пока нет заказов</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    document.querySelectorAll('.tab-btn').forEach(btn => {
+    // Переключение вкладок
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = document.querySelectorAll('.tab-content');
+    
+    tabs.forEach(btn => {
         btn.addEventListener('click', () => {
             const tabId = btn.dataset.tab;
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            tabs.forEach(b => b.classList.remove('active'));
+            contents.forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(`tab-${tabId}`).classList.add('active');
+            localStorage.setItem('activeProfileTab', tabId);
         });
     });
+    
+    const savedTab = localStorage.getItem('activeProfileTab');
+    if (savedTab) {
+        const tabBtn = document.querySelector(`.tab-btn[data-tab="${savedTab}"]`);
+        if (tabBtn) tabBtn.click();
+    }
+    
+    // Показать/скрыть форму добавления адреса
+    const showBtn = document.getElementById('showAddAddressBtn');
+    const addForm = document.getElementById('addAddressForm');
+    const cancelBtn = document.getElementById('cancelAddAddress');
+    
+    if (showBtn) {
+        showBtn.addEventListener('click', () => {
+            addForm.style.display = 'block';
+            showBtn.style.display = 'none';
+        });
+    }
+    
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+            addForm.style.display = 'none';
+            if (showBtn) showBtn.style.display = 'inline-block';
+            document.getElementById('addressForm').reset();
+            document.getElementById('countryId').value = '';
+            document.getElementById('regionId').value = '';
+            document.getElementById('cityId').value = '';
+            document.getElementById('streetId').value = '';
+        });
+    }
+    
+    // Автодополнение для адресов
+    function setupAutocomplete(inputId, hiddenId, suggestionsId, url, parentIdName, parentIdValue) {
+        const input = document.getElementById(inputId);
+        const hidden = document.getElementById(hiddenId);
+        const suggestions = document.getElementById(suggestionsId);
+        let timeoutId;
+        
+        if (!input) return;
+        
+        input.addEventListener('input', function() {
+            clearTimeout(timeoutId);
+            const query = this.value.trim();
+            
+            if (query.length < 2) {
+                suggestions.style.display = 'none';
+                return;
+            }
+            
+            timeoutId = setTimeout(() => {
+                let urlParams = `${url}?q=${encodeURIComponent(query)}`;
+                if (parentIdName && parentIdValue) {
+                    urlParams += `&${parentIdName}=${parentIdValue}`;
+                }
+                
+                fetch(urlParams)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.length === 0) {
+                            suggestions.style.display = 'none';
+                            return;
+                        }
+                        
+                        suggestions.innerHTML = data.map(item => 
+                            `<div class="suggestion-item" data-id="${item.id}" data-name="${item.name}">
+                                ${item.name}
+                            </div>`
+                        ).join('');
+                        suggestions.style.display = 'block';
+                        
+                        document.querySelectorAll(`#${suggestionsId} .suggestion-item`).forEach(el => {
+                            el.addEventListener('click', () => {
+                                input.value = el.dataset.name;
+                                hidden.value = el.dataset.id;
+                                suggestions.style.display = 'none';
+                                
+                                // Активируем следующее поле
+                                if (inputId === 'countryInput') {
+                                    const regionInput = document.getElementById('regionInput');
+                                    if (regionInput) regionInput.disabled = false;
+                                } else if (inputId === 'regionInput') {
+                                    const cityInput = document.getElementById('cityInput');
+                                    if (cityInput) cityInput.disabled = false;
+                                } else if (inputId === 'cityInput') {
+                                    const streetInput = document.getElementById('streetInput');
+                                    if (streetInput) streetInput.disabled = false;
+                                }
+                            });
+                        });
+                    });
+            }, 300);
+        });
+        
+        document.addEventListener('click', function(e) {
+            if (!suggestions.contains(e.target) && e.target !== input) {
+                suggestions.style.display = 'none';
+            }
+        });
+    }
+    
+    setupAutocomplete('countryInput', 'countryId', 'countrySuggestions', '/api/search-country', null, null);
+    
+    document.getElementById('countryInput').addEventListener('change', function() {
+        if (document.getElementById('countryId').value) {
+            const regionInput = document.getElementById('regionInput');
+            if (regionInput) regionInput.disabled = false;
+        }
+    });
+    
+    setupAutocomplete('regionInput', 'regionId', 'regionSuggestions', '/api/search-region', 'country_id', 
+        () => document.getElementById('countryId').value);
+    
+    document.getElementById('regionInput').addEventListener('change', function() {
+        if (document.getElementById('regionId').value) {
+            const cityInput = document.getElementById('cityInput');
+            if (cityInput) cityInput.disabled = false;
+        }
+    });
+    
+    setupAutocomplete('cityInput', 'cityId', 'citySuggestions', '/api/search-city', 'region_id',
+        () => document.getElementById('regionId').value);
+    
+    document.getElementById('cityInput').addEventListener('change', function() {
+        if (document.getElementById('cityId').value) {
+            const streetInput = document.getElementById('streetInput');
+            if (streetInput) streetInput.disabled = false;
+        }
+    });
+    
+    setupAutocomplete('streetInput', 'streetId', 'streetSuggestions', '/api/search-street', 'city_id',
+        () => document.getElementById('cityId').value);
 </script>
 {% endblock %}

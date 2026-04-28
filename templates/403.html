@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Доступ запрещен - 403{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/error.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-container">
+        <div class="error-code">403</div>
+        <h1 class="error-title">Доступ запрещен</h1>
+        <p class="error-message">
+            У вас нет прав для доступа к этой странице.<br>
+            Пожалуйста, войдите в систему с соответствующими правами.
+        </p>
+        <div class="error-actions">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                Вернуться на главную
+            </a>
+            <a href="{{ url_for('catalog.catalog') }}" class="btn btn-outline">
+                Перейти в каталог
+            </a>
+    </div>
+</div>
+{% endblock %}

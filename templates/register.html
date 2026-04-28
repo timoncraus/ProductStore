@@ -4,38 +4,49 @@
 
 {% block content %}
 <div class="form-container">
-    <h2>📝 Регистрация</h2>
+    <h2>Регистрация</h2>
     
-    <form method="POST" action="{{ url_for('register') }}">
+    <form method="POST" action="{{ url_for('main.register') }}" id="registerForm">
         <div class="form-group">
             <label for="username">Имя пользователя *</label>
-            <input type="text" id="username" name="username" minlength="3" required>
+            <input type="text" id="username" name="username" minlength="3" 
+                   value="{{ form_data.username if form_data else '' }}" required>
         </div>
         
         <div class="form-group">
             <label for="email">Email *</label>
-            <input type="email" id="email" name="email" required>
+            <input type="email" id="email" name="email" 
+                   value="{{ form_data.email if form_data else '' }}" required>
         </div>
         
         <div class="form-group">
             <label for="phone">Телефон *</label>
-            <input type="tel" id="phone" name="phone" required placeholder="+79123456789">
+            <input type="tel" id="phone" name="phone" 
+                   value="{{ form_data.phone if form_data else '' }}" 
+                   placeholder="+79123456789" required>
         </div>
         
         <div class="form-group">
             <label for="first_name">Имя</label>
-            <input type="text" id="first_name" name="first_name">
+            <input type="text" id="first_name" name="first_name" 
+                   value="{{ form_data.first_name if form_data else '' }}">
         </div>
         
         <div class="form-group">
             <label for="last_name">Фамилия</label>
-            <input type="text" id="last_name" name="last_name">
+            <input type="text" id="last_name" name="last_name" 
+                   value="{{ form_data.last_name if form_data else '' }}">
         </div>
         
         <div class="form-group">
             <label for="password">Пароль *</label>
             <input type="password" id="password" name="password" required>
-            <small class="form-hint">Минимум 9 символов, буквы, цифры и спецсимволы</small>
+            <small class="form-hint">
+                ✅ Минимум 9 символов<br>
+                ✅ Должен содержать буквы<br>
+                ✅ Должен содержать цифры<br>
+                ✅ Должен содержать спецсимволы (!@#$%^&* и т.д.)
+            </small>
         </div>
         
         <div class="form-group">
@@ -43,16 +54,33 @@
             <input type="password" id="password2" name="password2" required>
         </div>
         
-        <div class="form-group">
-            <label for="captcha">Капча: {{ captcha_question }} = ?</label>
-            <input type="text" id="captcha" name="captcha" required>
+        <div class="form-group captcha-group">
+            <label>Капча *</label>
+            <div class="captcha-container">
+                <img src="data:image/png;base64,{{ captcha_image }}" alt="CAPTCHA" class="captcha-image" id="captchaImg">
+                <button type="button" class="btn-refresh-captcha" id="refreshCaptchaBtn"
+                        data-refresh-url="{{ url_for('main.refresh_captcha') }}">
+                        <img src="{{ url_for('static', filename='icons/refresh.png') }}" alt="Обновить" class="icon">
+                </button>
+            </div>
+            <input type="text" id="captcha" name="captcha" placeholder="Введите символы с картинки" required>
         </div>
         
         <button type="submit" class="btn btn-primary btn-block">Зарегистрироваться</button>
     </form>
     
     <p class="form-footer">
-        Уже есть аккаунт? <a href="{{ url_for('login') }}">Войти</a>
+        Уже есть аккаунт? <a href="{{ url_for('main.login') }}">Войти</a>
     </p>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Передаем URL для обновления капчи из Flask в JavaScript
+var refreshCaptchaUrl = "{{ url_for('main.refresh_captcha') }}";
+</script>
+
+<script src="{{ url_for('static', filename='scripts/register.js') }}"></script>
 {% endblock %}

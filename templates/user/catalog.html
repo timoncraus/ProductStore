@@ -2,48 +2,49 @@
 
 {% block title %}Каталог товаров{% endblock %}
 
+{% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='styles/catalog.css') }}"
+/>
+{% endblock %}
+
 {% block content %}
 <h1>Каталог товаров</h1>
 
 <div class="catalog-layout">
     <div class="catalog-sidebar">
-        <div class="filters">
+        <div class="filter-card">
             <h3>Категории</h3>
             <ul class="categories-list">
                 <li>
-                    <a href="{{ url_for('catalog') }}" {% if not category_id %}class="active"{% endif %}>
-                        📦 Все товары ({{ total }})
+                    <a href="{{ url_for('catalog.catalog') }}" {% if not category_id %}class="active"{% endif %}>
+                        <img src="{{ url_for('static', filename='icons/all-products.png') }}" class="icon">Все товары ({{ total }})
                     </a>
                 </li>
                 {% for cat in categories %}
                 <li>
-                    <a href="{{ url_for('catalog', category=cat.id) }}" {% if category_id == cat.id %}class="active"{% endif %}>
-                        <img src="{{ cat.image_url or '/static/images/categories/default-category.jpg' }}" 
+                    <a href="{{ url_for('catalog.catalog', category=cat.id) }}" {% if category_id == cat.id %}class="active"{% endif %}>
+                        {% if cat.image_url %}
+                        <img src="{{ cat.image_url }}" 
                              alt="{{ cat.name }}" 
                              class="category-icon-img"
                              onerror="this.src='/static/images/categories/default-category.jpg'">
+                        {% endif %}
                         {{ cat.name }} ({{ cat.product_count }})
                     </a>
                 </li>
                 {% endfor %}
             </ul>
         </div>
-
-        <div class="search-form">
-            <h3>Поиск</h3>
-            <form method="GET" action="{{ url_for('catalog') }}">
-                {% if category_id %}
-                    <input type="hidden" name="category" value="{{ category_id }}">
-                {% endif %}
-                <input type="text" name="search" placeholder="Поиск товаров..." value="{{ search or '' }}">
-                <button type="submit">🔍 Найти</button>
-            </form>
-        </div>
     </div>
 
     <div class="catalog-content">
         <div class="products-header">
             <p>Найдено товаров: <strong>{{ total }}</strong></p>
+            <a href="{{ url_for('catalog.search_page') }}" class="btn btn-sm btn-outline">
+                <img src="{{ url_for('static', filename='icons/advanced-search.png') }}" class="icon">
+            Перейти в расширенный поиск</a>
         </div>
 
         {% if products %}
@@ -57,8 +58,13 @@
                 <div class="product-info">
                     <h3 class="product-title">{{ product.name }}</h3>
                     <p class="product-category">{{ product.category_name }}</p>
-                    <p class="product-price">{{ "%.2f"|format(product.price) }} ₽</p>
-                    <a href="{{ url_for('product_detail', product_id=product.id) }}" class="btn btn-sm">Подробнее</a>
+                    <div class="price-wrapper">
+                        <span class="current-price">{{ "%.2f"|format(product.price) }} ₽</span>
+                        {% if product.old_price and product.old_price > product.price %}
+                            <span class="old-price">{{ "%.2f"|format(product.old_price) }} ₽</span>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('catalog.product_detail', product_id=product.id) }}" class="btn btn-sm">Подробнее</a>
                 </div>
             </div>
             {% endfor %}
@@ -66,17 +72,17 @@
 
         <div class="pagination">
             {% if page > 1 %}
-            <a href="{{ url_for('catalog', page=page-1, category=category_id, search=search) }}">← Назад</a>
+            <a href="{{ url_for('catalog.catalog', page=page-1, category=category_id, search=search) }}">← Назад</a>
             {% endif %}
             <span>Страница {{ page }} из {{ total_pages }}</span>
             {% if page < total_pages %}
-            <a href="{{ url_for('catalog', page=page+1, category=category_id, search=search) }}">Вперёд →</a>
+            <a href="{{ url_for('catalog.catalog', page=page+1, category=category_id, search=search) }}">Вперёд →</a>
             {% endif %}
         </div>
         {% else %}
         <div class="empty-state">
             <p>😕 Товары не найдены</p>
-            <a href="{{ url_for('catalog') }}" class="btn">Сбросить фильтры</a>
+            <a href="{{ url_for('catalog.catalog') }}" class="btn">Сбросить фильтры</a>
         </div>
         {% endif %}
     </div>

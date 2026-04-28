@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Ошибка сервера - 500{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='styles/error.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="error-page">
+    <div class="error-container">
+        <div class="error-code">500</div>
+        <h1 class="error-title">Ошибка сервера</h1>
+        <p class="error-message">
+            Извините, на сервере произошла ошибка. Мы уже работаем над ее устранением.
+        </p>
+        <div class="error-actions">
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary">
+                Вернуться на главную
+            </a>
+            <a href="{{ url_for('catalog.catalog') }}" class="btn btn-outline">
+                Перейти в каталог
+            </a>
+    </div>
+</div>
+{% endblock %}

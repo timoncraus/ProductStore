@@ -1,0 +1,283 @@
+/* ========================================
+   КАТАЛОГ С САЙДБАРОМ
+   ======================================== */
+.catalog-layout {
+    display: flex;
+    gap: 40px;
+    margin: 40px 0;
+}
+
+.catalog-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+}
+
+.catalog-content {
+    flex: 1;
+}
+
+.filter-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+.filter-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 600;
+    font-style: italic;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--primary);
+    display: inline-block;
+}
+
+.categories-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.categories-list li {
+    margin-bottom: 8px;
+}
+
+.categories-list a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 15px;
+    color: var(--dark);
+    text-decoration: none;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.categories-list a:hover {
+    background: rgba(0, 200, 83, 0.08);
+    color: var(--primary);
+    transform: translateX(5px);
+}
+
+.categories-list a.active {
+    background: linear-gradient(90deg, var(--primary), transparent);
+    color: var(--white);
+}
+
+/* Иконки категорий в сайдбаре */
+.category-icon-img {
+    width: 57px;
+    height: 57px;
+    min-width: 57px;
+    max-width: 57px;
+    object-fit: cover;
+    border-radius: 15px;
+}
+
+/* Картинки товаров в каталоге */
+.catalog-content .product-card .product-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    transition: var(--transition);
+    background: var(--light);
+    padding: 10px;
+}
+
+.products-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+}
+
+.products-header p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+}
+
+/* Пустое состояние */
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+.empty-state p {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--dark);
+}
+
+.empty-state .btn {
+    margin-top: 10px;
+}
+
+/* ========================================
+   ОТДЕЛЬНАЯ СТРАНИЦА ПОИСКА
+   ======================================== */
+.search-page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.search-form-large {
+    background: var(--white);
+    padding: 30px;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    margin: 30px 0;
+}
+
+.search-input-group {
+    display: flex;
+    gap: 15px;
+}
+
+.search-input {
+    flex: 1;
+    padding: 16px 20px;
+    border: 2px solid rgba(0,0,0,0.1);
+    border-radius: var(--radius-md);
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    transition: var(--transition);
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.1);
+}
+
+.search-results-header {
+    margin: 30px 0 20px;
+    padding: 15px 20px;
+    background: rgba(0, 200, 83, 0.05);
+    border-radius: var(--radius-md);
+    border-left: 3px solid var(--primary);
+}
+
+.search-results-header p {
+    margin: 5px 0;
+    font-family: 'Cormorant Garamond', serif;
+}
+
+.search-placeholder {
+    text-align: center;
+    padding: 80px 20px;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+
+.search-icon-large {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.search-placeholder p {
+    font-size: 1.2rem;
+    color: var(--dark);
+    margin: 10px 0;
+}
+
+.search-hint {
+    color: #666;
+    font-size: 0.9rem !important;
+}
+
+.search-suggestion {
+    margin-top: 15px;
+    font-size: 0.9rem;
+}
+
+.search-suggestion a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+.search-suggestion a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   АДАПТИВНОСТЬ ДЛЯ КАТАЛОГА
+   ======================================== */
+@media (max-width: 992px) {
+    .catalog-layout {
+        flex-direction: column;
+    }
+    
+    .catalog-sidebar {
+        width: 100%;
+    }
+}
+
+@media (max-width: 768px) {
+    .products-header {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .search-input-group {
+        flex-direction: column;
+    }
+    
+    .search-form-large {
+        padding: 20px;
+    }
+}
+
+/* ЗАКРЕПЛЕННЫЙ САЙДБАР*/
+.catalog-sidebar {
+    width: 300px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 20px; /* Отступ от верхнего края при прокрутке */
+    align-self: flex-start;
+    height: fit-content;
+    transition: all 0.3s ease;
+}
+
+/* Адаптация для мобильных устройств - отключаем закрепление */
+@media (max-width: 992px) {
+    .catalog-layout {
+        flex-direction: column;
+    }
+    
+    .catalog-sidebar {
+        width: 100%;
+        position: static; /* На мобильных устройствах sidebar не закрепляется */
+    }
+}
+
+/* Эффект тени при закреплении (работает при прокрутке) */
+@supports (position: sticky) {
+    .catalog-sidebar {
+        transition: box-shadow 0.3s ease;
+    }
+    
+    /* Добавляем небольшую тень когда sidebar закреплен */
+    @keyframes sticky-shadow {
+        from {
+            box-shadow: none;
+        }
+        to {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    }
+}

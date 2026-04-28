@@ -7,59 +7,66 @@
 
 {% if cart_items %}
 <div class="cart-container">
-    <table class="cart-table">
-        <thead>
-            <tr>
-                <th>Товар</th>
-                <th>Цена</th>
-                <th>Количество</th>
-                <th>Сумма</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr>
-                <td>
-                    <div class="cart-product">
-                        <img src="{{ item.image_url or '/static/images/products/default-product.jpg' }}" alt="{{ item.name }}" class="cart-product-image">
-                        <div class="cart-product-info">
-                            <strong>{{ item.name }}</strong>
+    <form method="POST" action="{{ url_for('cart.update_all_cart') }}" id="cart-form">
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Товар</th>
+                    <th>Цена</th>
+                    <th>Количество</th>
+                    <th>Сумма</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>
+                        <div class="cart-product">
+                            <img src="{{ item.image_url or '/static/images/products/default-product.jpg' }}" alt="{{ item.name }}" class="cart-product-image">
+                            <div class="cart-product-info">
+                                <strong>{{ item.name }}</strong>
+                            </div>
                         </div>
-                    </div>
-                </td>
-                <td>{{ "%.2f"|format(item.price) }} ₽</td>
-                <td>
-                    <form method="POST" action="{{ url_for('update_cart') }}" class="cart-quantity-form">
                         <input type="hidden" name="cart_item_id" value="{{ item.cart_item_id }}">
-                        <input type="number" name="quantity" value="{{ item.quantity }}" min="1" max="{{ item.stock_quantity or 99 }}" class="cart-quantity">
-                        <button type="submit" class="btn-sm">Обновить</button>
-                    </form>
-                </td>
-                <td>{{ "%.2f"|format(item.item_total) }} ₽</td>
-                <td>
-                    <a href="{{ url_for('remove_from_cart', item_id=item.cart_item_id) }}" class="btn-remove" onclick="return confirm('Удалить товар из корзины?')">🗑️</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td colspan="3" class="cart-total-label"><strong>Итого:</strong></td>
-                <td colspan="2" class="cart-total"><strong>{{ "%.2f"|format(total) }} ₽</strong></td>
-            </tr>
-        </tfoot>
-    </table>
+                    </td>
+                    <td>{{ "%.2f"|format(item.price) }} ₽</td>
+                    <td>
+                        <input type="number" 
+                               name="quantity_{{ item.cart_item_id }}" 
+                               value="{{ item.quantity }}" 
+                               min="1" 
+                               max="{{ item.stock or 99 }}" 
+                               class="cart-quantity">
+                    </td>
+                    <td class="item-total">{{ "%.2f"|format(item.item_total) }} ₽</td>
+                    <td>
+                        <a href="{{ url_for('cart.remove_from_cart', item_id=item.cart_item_id) }}" 
+                           class="btn-remove" 
+                           onclick="return confirm('Удалить товар из корзины?')">🗑️</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" class="cart-total-label"><strong>Итого:</strong></td>
+                    <td colspan="2" class="cart-total"><strong>{{ "%.2f"|format(total) }} ₽</strong></td>
+                </tr>
+            </tfoot>
+        </table>
 
-    <div class="cart-actions">
-        <a href="{{ url_for('catalog') }}" class="btn">Продолжить покупки</a>
-        <a href="{{ url_for('checkout') }}" class="btn btn-primary">Оформить заказ</a>
-    </div>
+        <div class="cart-actions">
+            <button type="submit" class="btn btn-primary">🔄 Обновить корзину</button>
+            <a href="{{ url_for('catalog.catalog') }}" class="btn">Продолжить покупки</a>
+            <a href="{{ url_for('checkout.checkout') }}" class="btn btn-success">Оформить заказ</a>
+        </div>
+    </form>
 </div>
 {% else %}
 <div class="empty-cart">
     <p>🛒 Ваша корзина пуста</p>
-    <a href="{{ url_for('catalog') }}" class="btn btn-primary">Перейти в каталог</a>
+    <a href="{{ url_for('catalog.catalog') }}" class="btn btn-primary">Перейти в каталог</a>
 </div>
 {% endif %}
 {% endblock %}
