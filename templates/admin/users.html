@@ -1,0 +1,432 @@
+{% extends "base.html" %} 
+{% block title %}Управление пользователями{% endblock %}
+
+{% block extra_css %}
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .admin-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    transition: var(--transition);
+    border: 1px solid rgba(0, 200, 83, 0.1);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 10px;
+  }
+
+  .stat-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 10px 0;
+  }
+
+  .stat-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+  }
+
+  .data-table thead th {
+    background: linear-gradient(135deg, var(--primary-light), var(--gray));
+    padding: 15px;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dark);
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .data-table tbody td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(0, 200, 83, 0.05);
+  }
+
+  .inactive-row {
+    background: rgba(255, 82, 82, 0.05);
+    opacity: 0.7;
+  }
+
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .user-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: var(--dark);
+  }
+
+  .user-email {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    color: #666;
+  }
+
+  .badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .badge-admin {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+  }
+
+  .badge-user {
+    background: #e0e0e0;
+    color: #666;
+  }
+
+  .badge-primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .badge-secondary {
+    background: #6c757d;
+    color: white;
+  }
+
+  .status {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .status-active {
+    background: rgba(0, 200, 83, 0.2);
+    color: var(--primary-dark);
+  }
+
+  .status-inactive {
+    background: rgba(255, 82, 82, 0.2);
+    color: var(--danger);
+  }
+
+  .actions-cell {
+    white-space: nowrap;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+  }
+
+  .btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    margin: 0 3px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    background: transparent;
+  }
+
+  .btn-icon img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .btn-icon.edit {
+    background: rgba(33, 150, 243, 0.1);
+  }
+
+  .btn-icon.edit:hover {
+    background: var(--info);
+    transform: scale(1.05);
+  }
+
+  .btn-icon.delete {
+    background: rgba(255, 82, 82, 0.1);
+  }
+
+  .btn-icon.delete:hover {
+    background: var(--danger);
+    transform: scale(1.05);
+  }
+
+  .btn-icon.view {
+    background: rgba(0, 200, 83, 0.1);
+  }
+
+  .btn-icon.view:hover {
+    background: var(--primary);
+    transform: scale(1.05);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px;
+    color: #999;
+    font-size: 1.1rem;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  .amount {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    color: var(--primary);
+  }
+
+  @media (max-width: 768px) {
+    .admin-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-start;
+    }
+    
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>
+        <img src="{{ url_for('static', filename='icons/users.png') }}" alt="Пользователи" class="icon" style="width: 32px; height: 32px; vertical-align: middle;">
+        Управление пользователями
+      </h1>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='icons/users.png') }}" alt="Всего пользователей">
+        </div>
+        <div class="stat-number">{{ users|length }}</div>
+        <div class="stat-label">Всего пользователей</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='icons/admin.png') }}" alt="Администраторы">
+        </div>
+        <div class="stat-number">{{ users|selectattr('role', 'equalto', 'admin')|list|length }}</div>
+        <div class="stat-label">Администраторов</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='icons/active.png') }}" alt="Активные">
+        </div>
+        <div class="stat-number">{{ users|selectattr('is_active', 'equalto', 1)|list|length }}</div>
+        <div class="stat-label">Активных</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <img src="{{ url_for('static', filename='icons/blocked.png') }}" alt="Заблокированные">
+        </div>
+        <div class="stat-number">{{ users|selectattr('is_active', 'equalto', 0)|list|length }}</div>
+        <div class="stat-label">Заблокированных</div>
+      </div>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Пользователь</th>
+            <th>ФИО</th>
+            <th>Телефон</th>
+            <th>Роль</th>
+            <th>Статус</th>
+            <th>Заказов</th>
+            <th>Сумма заказов</th>
+            <th>Дата регистрации</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr class="{% if not user.is_active %}inactive-row{% endif %}">
+            <td><strong>{{ user.id }}</strong></td>
+            <td>
+              <div class="user-info">
+                <div class="user-name">
+                  <div class="user-avatar" style="display: inline-block; margin-right: 10px;">
+                    {{ user.username[0]|upper if user.username else 'U' }}
+                  </div>
+                  {{ user.username }}
+                </div>
+                <span class="user-email">{{ user.email }}</span>
+              </div>
+            </td>
+            <td>
+              {% if user.first_name or user.last_name %}
+                {{ user.last_name }} {{ user.first_name }}
+              {% else %}
+                <span class="badge badge-secondary">Не указано</span>
+              {% endif %}
+            </td>
+            <td>{{ user.phone or 'Не указан' }}</td>
+            <td>
+              {% if user.role == 'admin' %}
+                <span class="badge badge-admin">
+                  <img src="{{ url_for('static', filename='icons/admin.png') }}" alt="admin" class="icon" style="width: 14px; height: 14px;">
+                  Администратор
+                </span>
+              {% else %}
+                <span class="badge badge-user">
+                  <img src="{{ url_for('static', filename='icons/user.png') }}" alt="user" class="icon" style="width: 14px; height: 14px;">
+                  Пользователь
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+                <span class="status status-active">
+                  <img src="{{ url_for('static', filename='icons/active.png') }}" alt="active" class="icon" style="width: 14px; height: 14px;">
+                  Активен
+                </span>
+              {% else %}
+                <span class="status status-inactive">
+                  <img src="{{ url_for('static', filename='icons/blocked.png') }}" alt="blocked" class="icon" style="width: 14px; height: 14px;">
+                  Заблокирован
+                </span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {% if user.orders_count and user.orders_count > 0 %}badge-primary{% else %}badge-secondary{% endif %}">
+                {{ user.orders_count or 0 }}
+              </span>
+            </td>
+            <td class="amount">
+              {% if user.total_spent and user.total_spent > 0 %}
+                {{ "%.2f"|format(user.total_spent) }} ₽
+              {% else %}
+                0 ₽
+              {% endif %}
+            </td>
+            <td>{{ user.created_at.strftime('%d.%m.%Y') if user.created_at else '—' }}</td>
+            <td class="actions-cell">
+              <a href="{{ url_for('admin.users.user_detail', user_id=user.id) }}" class="btn-icon view" title="Просмотреть">
+                <img src="{{ url_for('static', filename='icons/view.png') }}" alt="Просмотреть">
+              </a>
+              <a href="{{ url_for('admin.users.user_toggle', user_id=user.id) }}" 
+                 class="btn-icon {% if user.is_active %}delete{% else %}edit{% endif %}" 
+                 title="{% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %}"
+                 onclick="return confirm('{% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %} пользователя «{{ user.username }}»?')">
+                <img src="{{ url_for('static', filename='icons/lock.png') if user.is_active else url_for('static', filename='icons/unlock.png') }}" 
+                     alt="{% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %}">
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="10" class="text-center empty-state">
+              <img src="{{ url_for('static', filename='icons/empty.png') }}" alt="Нет данных" style="width: 64px; height: 64px; margin-bottom: 15px;">
+              <br>Нет пользователей
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+{% endblock %}

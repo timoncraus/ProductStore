@@ -1,0 +1,144 @@
+{% extends "base.html" %} 
+{% block title %}Редактирование товара{% endblock %}
+
+{% block content %}
+<main>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>✏️ Редактирование товара</h1>
+      <a href="{{ url_for('admin.products.products') }}" class="btn btn-outline">← Назад к списку</a>
+    </div>
+
+    <form method="POST" class="admin-form">
+      <div class="form-grid">
+        <!-- Левая колонка -->
+        <div class="form-section">
+          <h3>Основная информация</h3>
+
+          <div class="form-group">
+            <label>Название товара *</label>
+            <input type="text" name="name" required class="form-control" 
+                   value="{{ product.name }}" placeholder="Введите название">
+          </div>
+
+          <div class="form-group">
+            <label>Описание</label>
+            <textarea name="description" rows="5" class="form-control" 
+                      placeholder="Подробное описание товара...">{{ product.description or '' }}</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Цена *</label>
+              <input type="number" name="price" step="0.01" required class="form-control" 
+                     value="{{ product.price }}" placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label>Старая цена (скидка)</label>
+              <input type="number" name="old_price" step="0.01" class="form-control" 
+                     value="{{ product.old_price or '' }}" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Категория *</label>
+              <select name="category_id" required class="form-control">
+                <option value="">— Выберите категорию —</option>
+                {% for cat in categories %}
+                  {% if product.category_id == cat.id %}
+                    <option value="{{ cat.id }}" selected>{{ cat.name }}</option>
+                  {% else %}
+                    <option value="{{ cat.id }}">{{ cat.name }}</option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Единица измерения</label>
+              <select name="unit" class="form-control">
+                <option value="шт" {% if product.unit == 'шт' %}selected{% endif %}>штука (шт)</option>
+                <option value="кг" {% if product.unit == 'кг' %}selected{% endif %}>килограмм (кг)</option>
+                <option value="г" {% if product.unit == 'г' %}selected{% endif %}>грамм (г)</option>
+                <option value="л" {% if product.unit == 'л' %}selected{% endif %}>литр (л)</option>
+                <option value="мл" {% if product.unit == 'мл' %}selected{% endif %}>миллилитр (мл)</option>
+                <option value="уп" {% if product.unit == 'уп' %}selected{% endif %}>упаковка (уп)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Количество на складе</label>
+            <input type="number" name="stock" value="{{ product.stock or 0 }}" class="form-control">
+          </div>
+        </div>
+
+        <!-- Правая колонка -->
+        <div class="form-section">
+          <h3>Изображение</h3>
+
+          <div class="form-group">
+            <label>URL изображения</label>
+            <input type="text" name="image_url" id="image_url" 
+                   value="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
+                   class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Alt текст</label>
+            <input type="text" name="image_alt" class="form-control" 
+                   value="{{ product.image_alt or product.name }}" 
+                   placeholder="Описание изображения">
+          </div>
+
+          <div class="image-preview">
+            <img id="preview" src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" alt="Preview">
+            <p class="hint">Предпросмотр изображения</p>
+          </div>
+        </div>
+
+        <!-- Третья колонка -->
+        <div class="form-section">
+          <h3>Статусы и метки</h3>
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_active" {% if product.is_active %}checked{% endif %}>
+            Активен
+            <span class="checkbox-desc">Товар отображается на сайте</span>
+          </label>
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_new" {% if product.is_new %}checked{% endif %}>
+            Новинка
+            <span class="checkbox-desc">Отметить как новый товар</span>
+          </label>
+
+          <label class="checkbox-label">
+            <input type="checkbox" name="is_hit" {% if product.is_hit %}checked{% endif %}>
+            Хит продаж
+            <span class="checkbox-desc">Популярный товар</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-buttons">
+        <button type="submit" class="btn btn-primary btn-large">
+          Сохранить изменения
+        </button>
+        <a href="{{ url_for('admin.products.products') }}" class="btn btn-outline btn-large">
+          Отмена
+        </a>
+      </div>
+    </form>
+  </div>
+</main>
+
+<script>
+  const urlInput = document.getElementById("image_url");
+  const preview = document.getElementById("preview");
+
+  urlInput.addEventListener("input", function () {
+    preview.src = this.value || "/static/images/products/default-product.jpg";
+  });
+</script>
+{% endblock %}

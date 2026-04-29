@@ -1,104 +1,126 @@
 {% extends "base.html" %} {% block title %}Управление товарами{% endblock %} {%
 block content %}
-<div class="admin-header">
-  <h1>Управление товарами</h1>
-  <a href="{{ url_for('admin_products_add') }}" class="btn"> Добавить товар</a>
-</div>
+<main>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Управление товарами</h1>
+      <a
+        href="{{ url_for('admin.products.products_add') }}"
+        class="btn btn-primary"
+      >
+        <span class="btn-icon">+</span> Добавить товар
+      </a>
+    </div>
 
-<div class="table-responsive">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>Название</th>
-        <th>Категория</th>
-        <th>Цена</th>
-        <th>В наличии</th>
-        <th>Статус</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for product in products %}
-      <tr>
-        <td>{{ product.id }}</td>
-        <td>{{ product.name }}</td>
-        <td>{{ product.category_name or '-' }}</td>
-        <td>{{ product.price }} ₽</td>
-        <td>
-          {% set stock = product.stock_quantity or 0 %} {% if stock > 0 %}
-          <span class="stock-in">{{ stock }} шт</span>
+    <div class="table-responsive">
+      <table class="data-table products-table">
+        <thead>
+          <tr>
+            <th style="width: 60px">ID</th>
+            <th style="width: 80px">Изобр.</th>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Цена</th>
+            <th>Старая цена</th>
+            <th>Остаток</th>
+            <th>Метки</th>
+            <th>Активен</th>
+            <th style="width: 100px">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for product in products %}
+          <tr class="{% if not product.is_active %}inactive-row{% endif %}">
+            <td><strong>{{ product.id }}</strong></td>
+            <td>
+              <img
+                src="{{ product.image_url }}"
+                alt="{{ product.name }}"
+                class="product-thumb"
+                onerror="
+                  this.src = '/static/images/products/default-product.jpg'
+                "
+              />
+            </td>
+            <td class="product-name">
+              {{ product.name }} {% if product.is_new or product.is_hit %}
+              <div class="product-badges">
+                {% if product.is_hit %}<span class="badge badge-hit"
+                  >Хит</span
+                >{% endif %} {% if product.is_new %}<span
+                  class="badge badge-new"
+                  >Новинка</span
+                >{% endif %}
+              </div>
+              {% endif %}
+            </td>
+            <td>{{ product.category_name or '-' }}</td>
+            <td class="price">
+              <strong>{{ "%.2f"|format(product.price) }} ₽</strong>
+            </td>
+            <td class="price-old">
+              {% if product.old_price %}{{ "%.2f"|format(product.old_price) }}
+              ₽{% else %}—{% endif %}
+            </td>
+            <td>
+              {% set stock = product.stock or 0 %} {% if stock > 10 %}
+              <span class="stock stock-high"
+                >{{ stock }} {{ product.unit }}</span
+              >
+              {% elif stock > 0 %}
+              <span class="stock stock-low"
+                >{{ stock }} {{ product.unit }}</span
+              >
+              {% else %}
+              <span class="stock stock-out">Нет в наличии</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="badge-group">
+                {% if product.is_hit %}<span class="badge-sm hit">Хит</span>{%
+                endif %} {% if product.is_new %}<span class="badge-sm new"
+                  >Новинка</span
+                >{% endif %}
+              </div>
+            </td>
+            <td>
+              {% if product.is_active %}
+              <span class="status status-active">Активен</span>
+              {% else %}
+              <span class="status status-inactive">Неактивен</span>
+              {% endif %}
+            </td>
+            <td class="actions-cell">
+              <a
+                href="{{ url_for('admin.products.products_edit', product_id=product.id) }}"
+                class="btn-icon edit"
+                title="Редактировать"
+                >
+                <img src="{{ url_for('static', filename='icons/edit.png') }}" alt="Редактировать" class="icon">
+                </a>
+              <a
+                href="{{ url_for('admin.products.products_delete', product_id=product.id) }}"
+                class="btn-icon delete"
+                title="Удалить"
+                onclick="return confirm('Удалить товар «{{ product.name }}»?')"
+                >
+                <img src="{{ url_for('static', filename='icons/trash.png') }}" alt="Удалить" class="icon">
+                </a>
+            </td>
+          </tr>
           {% else %}
-          <span class="stock-out">Нет в наличии</span>
-          {% endif %}
-        </td>
-        <td>
-          {% if product.status_id == 2 %}
-          <span class="status-active">Активен</span>
-          {% else %}
-          <span class="status-inactive">Неактивен</span>
-          {% endif %}
-        </td>
-        <td>
-          <a
-            href="{{ url_for('admin_products_edit', product_id=product.id) }}"
-            class="btn-edit"
-            >✏️</a
-          >
-          <a
-            href="{{ url_for('admin_products_delete', product_id=product.id) }}"
-            class="btn-delete"
-            onclick="return confirm('Удалить товар {{ product.name }}?')"
-            >🗑️</a
-          >
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-
-<style>
-  .stock-in {
-    color: green;
-    font-weight: bold;
-  }
-  .stock-out {
-    color: red;
-  }
-  .status-active {
-    color: green;
-  }
-  .status-inactive {
-    color: gray;
-  }
-  .btn-edit,
-  .btn-delete {
-    text-decoration: none;
-    padding: 5px 10px;
-    margin: 0 2px;
-    border-radius: 3px;
-  }
-  .btn-edit {
-    background: #3498db;
-    color: white;
-  }
-  .btn-delete {
-    background: #e74c3c;
-    color: white;
-  }
-  .admin-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-  .btn {
-    padding: 10px 20px;
-    background: #27ae60;
-    color: white;
-    text-decoration: none;
-    border-radius: 5px;
-  }
-</style>
+          <tr>
+            <td colspan="10" class="text-center empty-state">
+              📭 Нет товаров.
+              <a href="{{ url_for('admin.products.products_add') }}"
+                >Добавить первый товар</a
+              >
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
 {% endblock %}

@@ -2,55 +2,85 @@
 
 {% block title %}{{ product.name }} - Продуктовый магазин{% endblock %}
 
+{% block extra_css %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='styles/product-detail.css') }}"
+/>
+{% endblock %}
+
 {% block content %}
-<div class="product-detail">
-    <div class="product-gallery">
-        <img src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
-             alt="{{ product.name }}" 
-             class="product-main-image"
-             onerror="this.src='/static/images/products/default-product.jpg'">
+<div class="container">
+    <!-- Хлебные крошки для навигации -->
+    <div class="breadcrumbs">
+        <a href="{{ url_for('catalog.catalog') }}">Каталог</a>
+        <span> / </span>
+        <a href="{{ url_for('catalog.catalog', category=product.category_id) }}">{{ product.category_name }}</a>
+        <span> / </span>
+        <span>{{ product.name }}</span>
     </div>
 
-    <div class="product-detail-info">
-        <h1>{{ product.name }}</h1>
-        <p class="product-category">
-            <a href="{{ url_for('catalog.catalog', category=product.category_id) }}">{{ product.category_name }}</a>
-        </p>
-        
-        <div class="product-detail-price">
-            {{ "%.2f"|format(product.price) }} ₽
-            {% if product.old_price and product.old_price > product.price %}
-                <span class="product-old-price">{{ "%.2f"|format(product.old_price) }} ₽</span>
-                <span class="discount-badge">-{{ ((product.old_price - product.price) / product.old_price * 100)|round(0)|int }}%</span>
+    <div class="product-detail">
+        <div class="product-gallery">
+            <img src="{{ product.image_url or '/static/images/products/default-product.jpg' }}" 
+                 alt="{{ product.name }}" 
+                 class="product-main-image"
+                 onerror="this.src='/static/images/products/default-product.jpg'">
+        </div>
+
+        <div class="product-detail-info">
+            <h1>{{ product.name }}</h1>
+            
+            <p class="product-category">
+                <a href="{{ url_for('catalog.catalog', category=product.category_id) }}">
+                    {{ product.category_name }}
+                </a>
+            </p>
+            
+            <div class="product-detail-price">
+                {{ "%.2f"|format(product.price) }} ₽
+                {% if product.old_price and product.old_price > product.price %}
+                    <span class="product-old-price">{{ "%.2f"|format(product.old_price) }} ₽</span>
+                    <span class="discount-badge">
+                        -{{ ((product.old_price - product.price) / product.old_price * 100)|round(0)|int }}%
+                    </span>
+                {% endif %}
+            </div>
+
+            <div class="product-stock">
+                {% if product.stock > 0 %}
+                    <span class="in-stock">В наличии: {{ product.stock }} шт.</span>
+                {% else %}
+                    <span class="out-of-stock">Нет в наличии</span>
+                {% endif %}
+            </div>
+
+            {% if product.description %}
+            <div class="product-description">
+                <h3>Описание</h3>
+                <p>{{ product.description }}</p>
+            </div>
             {% endif %}
-        </div>
 
-        <div class="product-stock">
-            {% if product.stock > 0 %}
-                <span class="in-stock">✅ В наличии: {{ product.stock }} шт.</span>
-            {% else %}
-                <span class="out-of-stock">❌ Нет в наличии</span>
-            {% endif %}
-        </div>
-
-        {% if product.description %}
-        <div class="product-description">
-            <h3>Описание</h3>
-            <p>{{ product.description }}</p>
-        </div>
-        {% endif %}
-
-        <div class="product-actions">
-            <form method="POST" action="{{ url_for('cart.add_to_cart') }}">
-                <input type="hidden" name="product_id" value="{{ product.id }}">
-                <div class="quantity-selector">
-                    <label>Количество:</label>
-                    <input type="number" name="quantity" value="1" min="1" max="{{ product.stock or 99 }}" step="1">
-                </div>
-                <button type="submit" class="btn btn-primary" {% if product.stock == 0 %}disabled{% endif %}>
-                    🛒 Добавить в корзину
-                </button>
-            </form>
+            <div class="product-actions">
+                <form method="POST" action="{{ url_for('cart.add_to_cart') }}">
+                    <input type="hidden" name="product_id" value="{{ product.id }}">
+                    <div class="quantity-selector">
+                        <label for="quantity">Количество:</label>
+                        <input type="number" 
+                               id="quantity"
+                               name="quantity" 
+                               value="1" 
+                               min="1" 
+                               max="{{ product.stock or 99 }}" 
+                               step="1"
+                               {% if product.stock == 0 %}disabled{% endif %}>
+                    </div>
+                    <button type="submit" class="btn btn-primary" {% if product.stock == 0 %}disabled{% endif %}>
+                        Добавить в корзину
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 </div>

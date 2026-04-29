@@ -15,19 +15,24 @@ def view_cart():
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            cursor.execute("""
-                SELECT ci.id as cart_item_id, ci.product_id, ci.quantity, ci.price,
-                       p.name, p.image_url, p.stock,
-                       (ci.quantity * ci.price) as item_total
-                FROM cart_item ci
-                JOIN cart c ON ci.cart_id = c.id
-                JOIN product p ON ci.product_id = p.id
-                WHERE c.user_id = %s
-            """, (session['user_id'],))
-            cart_items = cursor.fetchall()
+            # Сначала проверяем, есть ли корзина у пользователя
+            cursor.execute("SELECT id FROM cart WHERE user_id = %s", (session['user_id'],))
+            cart = cursor.fetchone()
             
-            for item in cart_items:
-                total += item['item_total']
+            if cart:
+                cursor.execute("""
+                    SELECT ci.id as cart_item_id, ci.product_id, ci.quantity, ci.price,
+                           p.name, p.image_url, p.stock,
+                           (ci.quantity * ci.price) as item_total
+                    FROM cart_item ci
+                    JOIN cart c ON ci.cart_id = c.id
+                    JOIN product p ON ci.product_id = p.id
+                    WHERE c.user_id = %s
+                """, (session['user_id'],))
+                cart_items = cursor.fetchall()
+                
+                for item in cart_items:
+                    total += item['item_total']
         except Error as e:
             flash(f'Ошибка загрузки корзины: {e}', 'danger')
         finally:
@@ -53,14 +58,24 @@ def add_to_cart():
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
+            # Проверяем, есть ли корзина у пользователя
             cursor.execute("SELECT id FROM cart WHERE user_id = %s", (session['user_id'],))
             cart = cursor.fetchone()
-            cart_id = cart['id']
             
+            # Если корзины нет - создаем
+            if not cart:
+                cursor.execute("INSERT INTO cart (user_id) VALUES (%s)", (session['user_id'],))
+                conn.commit()
+                cart_id = cursor.lastrowid
+            else:
+                cart_id = cart['id']
+            
+            # Получаем цену товара
             cursor.execute("SELECT price FROM product WHERE id = %s", (product_id,))
             product = cursor.fetchone()
             price = product['price'] if product else 0
             
+            # Добавляем товар в корзину
             cursor.execute("""
                 INSERT INTO cart_item (cart_id, product_id, quantity, price)
                 VALUES (%s, %s, %s, %s)

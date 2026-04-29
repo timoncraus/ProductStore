@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
-from routes.admin import admin_bp
 from decorators import admin_required
 from helpers import get_db_connection
 from mysql.connector import Error
@@ -54,7 +53,7 @@ def country_add():
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_countries'))
+    return redirect(url_for('admin.reference.countries'))
 
 @reference_bp.route('/countries/edit/<int:country_id>', methods=['POST'])
 @admin_required
@@ -77,7 +76,7 @@ def country_edit(country_id):
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_countries'))
+    return redirect(url_for('admin.reference.countries'))
 
 @reference_bp.route('/countries/delete/<int:country_id>')
 @admin_required
@@ -98,7 +97,7 @@ def country_delete(country_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_countries'))
+    return redirect(url_for('admin.reference.countries'))
 
 # =====================================================
 # РЕГИОНЫ
@@ -114,7 +113,7 @@ def regions():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT r.*, c.name as country_name, COUNT(ct.id) as cities_count
+                SELECT r.*, c.name as country_name, c.id as country_id, COUNT(ct.id) as cities_count
                 FROM region r
                 JOIN country c ON r.country_id = c.id
                 LEFT JOIN city ct ON r.id = ct.region_id
@@ -153,7 +152,7 @@ def region_add():
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_regions'))
+    return redirect(url_for('admin.reference.regions'))
 
 @reference_bp.route('/regions/edit/<int:region_id>', methods=['POST'])
 @admin_required
@@ -176,7 +175,7 @@ def region_edit(region_id):
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_regions'))
+    return redirect(url_for('admin.reference.regions'))
 
 @reference_bp.route('/regions/delete/<int:region_id>')
 @admin_required
@@ -197,7 +196,7 @@ def region_delete(region_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_regions'))
+    return redirect(url_for('admin.reference.regions'))
 
 # =====================================================
 # ГОРОДА
@@ -213,7 +212,7 @@ def cities():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT ct.*, r.name as region_name, c.name as country_name, COUNT(s.id) as streets_count
+                SELECT ct.*, r.name as region_name, r.id as region_id, c.name as country_name, COUNT(s.id) as streets_count
                 FROM city ct
                 JOIN region r ON ct.region_id = r.id
                 JOIN country c ON r.country_id = c.id
@@ -258,7 +257,7 @@ def city_add():
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_cities'))
+    return redirect(url_for('admin.reference.cities'))
 
 @reference_bp.route('/cities/edit/<int:city_id>', methods=['POST'])
 @admin_required
@@ -281,7 +280,7 @@ def city_edit(city_id):
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_cities'))
+    return redirect(url_for('admin.reference.cities'))
 
 @reference_bp.route('/cities/delete/<int:city_id>')
 @admin_required
@@ -302,7 +301,7 @@ def city_delete(city_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_cities'))
+    return redirect(url_for('admin.reference.cities'))
 
 # =====================================================
 # УЛИЦЫ
@@ -318,7 +317,11 @@ def streets():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT s.*, ct.name as city_name, r.name as region_name, c.name as country_name,
+                SELECT s.*, 
+                       ct.id as city_id,
+                       ct.name as city_name, 
+                       r.name as region_name, 
+                       c.name as country_name,
                        COUNT(a.id) as addresses_count
                 FROM street s
                 JOIN city ct ON s.city_id = ct.id
@@ -366,7 +369,7 @@ def street_add():
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_streets'))
+    return redirect(url_for('admin.reference.streets'))
 
 @reference_bp.route('/streets/edit/<int:street_id>', methods=['POST'])
 @admin_required
@@ -389,7 +392,7 @@ def street_edit(street_id):
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_streets'))
+    return redirect(url_for('admin.reference.streets'))
 
 @reference_bp.route('/streets/delete/<int:street_id>')
 @admin_required
@@ -410,4 +413,42 @@ def street_delete(street_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_streets'))
+    return redirect(url_for('admin.reference.streets'))
+
+# API для получения регионов по стране (для AJAX)
+@reference_bp.route('/api/regions/<int:country_id>')
+@admin_required
+def api_regions(country_id):
+    conn = get_db_connection()
+    regions = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT id, name FROM region WHERE country_id = %s ORDER BY name", (country_id,))
+            regions = cursor.fetchall()
+        except Error as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            conn.close()
+    
+    return jsonify(regions)
+
+# API для получения городов по региону (для AJAX)
+@reference_bp.route('/api/cities/<int:region_id>')
+@admin_required
+def api_cities(region_id):
+    conn = get_db_connection()
+    cities = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            cursor.execute("SELECT id, name FROM city WHERE region_id = %s ORDER BY name", (region_id,))
+            cities = cursor.fetchall()
+        except Error as e:
+            return jsonify({'error': str(e)}), 500
+        finally:
+            conn.close()
+    
+    return jsonify(cities)

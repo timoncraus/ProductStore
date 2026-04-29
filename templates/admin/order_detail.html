@@ -1,0 +1,393 @@
+{% extends "base.html" %}
+
+{% block title %}Заказ №{{ order.order_number }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .order-detail-container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .order-card {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .order-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 30px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .order-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    margin: 0;
+  }
+
+  .order-header .order-date {
+    font-size: 0.9rem;
+    opacity: 0.9;
+  }
+
+  .order-info-section {
+    padding: 30px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+
+  .info-card {
+    background: var(--light);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary);
+  }
+
+  .info-card h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 15px;
+  }
+
+  .info-card p {
+    margin: 8px 0;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1rem;
+  }
+
+  .info-card strong {
+    color: var(--dark);
+  }
+
+  .address-details {
+    line-height: 1.6;
+  }
+
+  .status-form {
+    background: var(--white);
+    padding: 25px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .status-form h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    margin-bottom: 15px;
+  }
+
+  .status-select-group {
+    display: flex;
+    gap: 15px;
+    align-items: flex-end;
+    flex-wrap: wrap;
+  }
+
+  .status-select-group select {
+    flex: 1;
+    padding: 12px 20px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+  }
+
+  .status-select-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .btn {
+    display: inline-block;
+    padding: 12px 28px;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-decoration: none;
+    transition: var(--transition);
+    font-size: 0.85rem;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline:hover {
+    background: var(--primary);
+    color: white;
+  }
+
+  .products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+  }
+
+  .products-table th {
+    background: var(--light);
+    padding: 12px;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  .products-table td {
+    padding: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  .product-image {
+    width: 50px;
+    height: 50px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    background: var(--light);
+    padding: 5px;
+  }
+
+  .total-row {
+    background: rgba(0, 200, 83, 0.05);
+    font-weight: bold;
+  }
+
+  .total-row td {
+    padding: 15px;
+    font-size: 1.1rem;
+  }
+
+  .total-amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--primary);
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  .status-1 { background: #ff9800; color: white; }
+  .status-2 { background: #2196f3; color: white; }
+  .status-3 { background: #4caf50; color: white; }
+  .status-4 { background: #9c27b0; color: white; }
+  .status-5 { background: #00bcd4; color: white; }
+  .status-6 { background: #8bc34a; color: white; }
+  .status-7 { background: #009688; color: white; }
+  .status-8 { background: #f44336; color: white; }
+
+  @media (max-width: 768px) {
+    .order-detail-container {
+      padding: 15px;
+      margin: 20px;
+    }
+
+    .order-header {
+      flex-direction: column;
+      text-align: center;
+    }
+
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .status-select-group {
+      flex-direction: column;
+    }
+
+    .status-select-group select {
+      width: 100%;
+    }
+
+    .products-table {
+      font-size: 0.85rem;
+    }
+
+    .products-table th,
+    .products-table td {
+      padding: 8px;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
+
+    .action-buttons .btn {
+      text-align: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+  <div class="order-card">
+    <div class="order-header">
+      <div>
+        <h1>Заказ №{{ order.order_number }}</h1>
+        <div class="order-date">{{ order.created_at.strftime('%d.%m.%Y в %H:%M') if order.created_at else '—' }}</div>
+      </div>
+      <div>
+        <span class="status-badge status-{{ order.status_id }}">
+          {% if order.status_id == 1 %}Новый
+          {% elif order.status_id == 2 %}Ожидает оплаты
+          {% elif order.status_id == 3 %}Оплачен
+          {% elif order.status_id == 4 %}В обработке
+          {% elif order.status_id == 5 %}Отправлен
+          {% elif order.status_id == 6 %}Доставлен
+          {% elif order.status_id == 7 %}Завершён
+          {% elif order.status_id == 8 %}Отменён
+          {% endif %}
+        </span>
+      </div>
+    </div>
+
+    <div class="order-info-section">
+      <!-- Информация о покупателе и доставке -->
+      <div class="info-grid">
+        <div class="info-card">
+          <h3>Покупатель</h3>
+          <p><strong>Имя:</strong> {{ order.last_name }} {{ order.first_name }}</p>
+          <p><strong>Логин:</strong> {{ order.username }}</p>
+          <p><strong>Email:</strong> {{ order.email }}</p>
+          <p><strong>Телефон:</strong> {{ order.phone }}</p>
+        </div>
+
+        <div class="info-card">
+          <h3>Адрес доставки</h3>
+          <div class="address-details">
+            <p><strong>Страна:</strong> {{ order.full_address.split(',')[0] if order.full_address else '—' }}</p>
+            <p><strong>Регион:</strong> {{ order.full_address.split(',')[1] if order.full_address else '—' }}</p>
+            <p><strong>Населенный пункт:</strong> {{ order.full_address.split(',')[2] if order.full_address else '—' }}</p>
+            <p><strong>Улица:</strong> {{ order.full_address.split(',')[3] if order.full_address else '—' }}</p>
+            <p><strong>Дом/Квартира:</strong> {{ order.full_address.split(',')[4] if order.full_address else '—' }}</p>
+            {% if order.entrance %}<p><strong>Подъезд:</strong> {{ order.entrance }}</p>{% endif %}
+            {% if order.floor %}<p><strong>Этаж:</strong> {{ order.floor }}</p>{% endif %}
+            {% if order.postal_code %}<p><strong>Почтовый индекс:</strong> {{ order.postal_code }}</p>{% endif %}
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h3>Комментарий к заказу</h3>
+          <p>{{ order.comment or 'Нет комментария' }}</p>
+        </div>
+      </div>
+
+      <!-- Форма изменения статуса -->
+      <form method="POST" action="{{ url_for('admin.orders.order_update_status', order_id=order.id) }}" class="status-form">
+        <h3>Изменить статус заказа</h3>
+        <div class="status-select-group">
+          <select name="status_id">
+            {% for status in statuses %}
+            <option value="{{ status.id }}" {% if order.status_id == status.id %}selected{% endif %}>
+              {% if status.id == 1 %}{{ status.name }}
+              {% elif status.id == 2 %}{{ status.name }}
+              {% elif status.id == 3 %}{{ status.name }}
+              {% elif status.id == 4 %}{{ status.name }}
+              {% elif status.id == 5 %}{{ status.name }}
+              {% elif status.id == 6 %}{{ status.name }}
+              {% elif status.id == 7 %}{{ status.name }}
+              {% elif status.id == 8 %}{{ status.name }}
+              {% endif %}
+            </option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-primary">Обновить статус</button>
+        </div>
+      </form>
+
+      <!-- Товары в заказе -->
+      <h3>Товары в заказе</h3>
+      <div class="table-responsive">
+        <table class="products-table">
+          <thead>
+            <tr>
+              <th>Изображение</th>
+              <th>Товар</th>
+              <th>Количество</th>
+              <th>Цена</th>
+              <th>Сумма</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for item in items %}
+            <tr>
+              <td>
+                <img src="{{ item.image_url or '/static/images/products/default-product.jpg' }}" 
+                     class="product-image" 
+                     alt="{{ item.product_name }}"
+                     onerror="this.src='/static/images/products/default-product.jpg'">
+              </td>
+              <td>
+                <strong>{{ item.product_name }}</strong><br>
+                <small>ед. изм: {{ item.unit }}</small>
+              </td>
+              <td>{{ item.quantity }} шт.</td>
+              <td>{{ "%.2f"|format(item.price) }} ₽</td>
+              <td><strong>{{ "%.2f"|format(item.quantity * item.price) }} ₽</strong></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr class="total-row">
+              <td colspan="4" style="text-align: right;"><strong>Итого:</strong></td>
+              <td class="total-amount"><strong>{{ "%.2f"|format(order.total_amount) }} ₽</strong></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+
+      <!-- Кнопки действий -->
+      <div class="action-buttons">
+        <a href="{{ url_for('admin.orders.orders') }}" class="btn btn-outline">← Назад к списку заказов</a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

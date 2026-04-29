@@ -1,0 +1,440 @@
+.product-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    margin: 50px auto;
+    max-width: 1200px;
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    padding: 40px;
+}
+
+/* Галерея товара */
+.product-gallery {
+    position: relative;
+    background: var(--light);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 500px;
+}
+
+.product-main-image {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    transition: var(--transition);
+    padding: 20px;
+    cursor: zoom-in;
+}
+
+.product-main-image:hover {
+    transform: scale(1.05);
+}
+
+/* Информация о товаре */
+.product-detail-info {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.product-detail-info h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    font-style: italic;
+    color: var(--dark);
+    margin: 0;
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+}
+
+.product-category {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 10px 0;
+}
+
+.product-category a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+    background: rgba(0, 200, 83, 0.1);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.product-category a:hover {
+    background: var(--primary);
+    color: var(--white);
+    transform: translateY(-2px);
+}
+
+/* Цена */
+.product-detail-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.8rem;
+    font-weight: 800;
+    color: var(--primary);
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.product-old-price {
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #999;
+    text-decoration: line-through;
+}
+
+.discount-badge {
+    background: linear-gradient(135deg, var(--danger), #ff1744);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: inline-block;
+}
+
+/* Наличие */
+.product-stock {
+    margin: 15px 0;
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.in-stock {
+    color: var(--primary-dark);
+    background: rgba(0, 200, 83, 0.1);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+.out-of-stock {
+    color: var(--danger);
+    background: rgba(255, 82, 82, 0.1);
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    display: inline-block;
+}
+
+/* Описание */
+.product-description {
+    margin: 25px 0;
+    padding-top: 25px;
+    border-top: 2px solid rgba(0, 0, 0, 0.06);
+    border-bottom: 2px solid rgba(0, 0, 0, 0.06);
+    padding-bottom: 25px;
+}
+
+.product-description h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--dark);
+}
+
+.product-description p {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #555;
+}
+
+/* Действия с товаром */
+.product-actions {
+    margin-top: 20px;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.quantity-selector label {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--dark);
+}
+
+.quantity-selector input {
+    width: 100px;
+    padding: 12px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+    transition: var(--transition);
+}
+
+.quantity-selector input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.1);
+}
+
+.btn {
+    display: inline-block;
+    padding: 14px 32px;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: var(--white);
+    box-shadow: 0 4px 15px rgba(0, 200, 83, 0.3);
+    width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 200, 83, 0.4);
+}
+
+.btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background: linear-gradient(135deg, #ccc, #999);
+}
+
+/* Похожие товары */
+.related-products {
+    margin-top: 80px;
+    padding: 40px 0;
+    background: var(--light);
+    border-radius: var(--radius-xl);
+}
+
+.related-products h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    font-style: italic;
+    text-align: center;
+    margin-bottom: 40px;
+    position: relative;
+    color: var(--dark);
+}
+
+.related-products h2::after {
+    content: '';
+    position: absolute;
+    bottom: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--primary), transparent);
+    border-radius: 2px;
+}
+
+.related-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 35px;
+    margin-top: 30px;
+}
+
+.related-product-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+    display: block;
+}
+
+.related-product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-xl);
+}
+
+.related-product-image {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    object-fit: contain;
+    background: var(--light);
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.related-product-card:hover .related-product-image {
+    transform: scale(1.05);
+}
+
+.related-product-info {
+    padding: 20px;
+}
+
+.related-product-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--dark);
+    margin-bottom: 10px;
+}
+
+.related-product-price {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+/* Хлебные крошки */
+.breadcrumbs {
+    margin: 30px auto 0;
+    max-width: 1200px;
+    padding: 15px 20px;
+    background: rgba(0, 200, 83, 0.05);
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.85rem;
+}
+
+.breadcrumbs a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.breadcrumbs a:hover {
+    color: var(--primary-dark);
+    text-decoration: underline;
+}
+
+.breadcrumbs span {
+    color: #999;
+}
+
+/* Адаптивность */
+@media (max-width: 992px) {
+    .product-detail {
+        gap: 40px;
+        padding: 30px;
+        margin: 30px 20px;
+    }
+    
+    .product-detail-info h1 {
+        font-size: 2rem;
+    }
+    
+    .product-detail-price {
+        font-size: 2.2rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .product-detail {
+        grid-template-columns: 1fr;
+        gap: 30px;
+        padding: 25px;
+        margin: 20px;
+    }
+    
+    .product-gallery {
+        min-height: 350px;
+    }
+    
+    .product-detail-info h1 {
+        font-size: 1.8rem;
+    }
+    
+    .product-detail-price {
+        font-size: 1.8rem;
+    }
+    
+    .product-old-price {
+        font-size: 1.2rem;
+    }
+    
+    .discount-badge {
+        font-size: 0.8rem;
+        padding: 5px 12px;
+    }
+    
+    .breadcrumbs {
+        margin: 20px;
+        font-size: 0.75rem;
+    }
+    
+    .related-products {
+        margin: 40px 20px;
+        padding: 30px 20px;
+    }
+    
+    .related-products h2 {
+        font-size: 1.6rem;
+    }
+    
+    .related-grid {
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .product-detail {
+        padding: 20px;
+        margin: 15px;
+    }
+    
+    .product-gallery {
+        min-height: 250px;
+    }
+    
+    .product-detail-info h1 {
+        font-size: 1.5rem;
+    }
+    
+    .product-detail-price {
+        font-size: 1.5rem;
+    }
+    
+    .quantity-selector {
+        width: 100%;
+    }
+    
+    .quantity-selector input {
+        flex: 1;
+    }
+    
+    .btn-primary {
+        width: 100%;
+    }
+}

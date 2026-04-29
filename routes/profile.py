@@ -94,6 +94,20 @@ def profile():
                 LIMIT 20
             """, (session['user_id'],))
             orders = cursor.fetchall()
+
+            order_items_count = {}
+            if orders:
+                order_ids = [order['id'] for order in orders]
+                if order_ids:
+                    placeholders = ','.join(['%s'] * len(order_ids))
+                    cursor.execute(f"""
+                        SELECT order_id, COUNT(*) as item_count 
+                        FROM order_item 
+                        WHERE order_id IN ({placeholders})
+                        GROUP BY order_id
+                    """, order_ids)
+                    for row in cursor.fetchall():
+                        order_items_count[row['order_id']] = row['item_count']
             
         except Error as e:
             print(f"Ошибка: {e}")
@@ -101,7 +115,22 @@ def profile():
         finally:
             conn.close()
     
-    return render_template('user/profile.html', user=user, orders=orders, addresses=addresses)
+    # Определяем активную вкладку
+    active_tab = request.args.get('tab', 'info')
+    
+    if session.pop('redirect_from_checkout', False):
+        active_tab = 'addresses'
+        flash('Пожалуйста, добавьте адрес доставки для оформления заказа', 'info')
+    
+    if active_tab not in ['info', 'addresses', 'orders']:
+        active_tab = 'info'
+    
+    return render_template('user/profile.html', 
+                        user=user, 
+                        orders=orders, 
+                        addresses=addresses,
+                        active_tab=active_tab,
+                        order_items_count=order_items_count)
 
 
 # API для автодополнения адресов
@@ -201,22 +230,22 @@ def api_search_street():
     if len(query) < 2:
         return jsonify([])
     
+    # Если city_id не передан или равен 0, ищем только по выбранному городу
+    # Но лучше вообще не искать без city_id
+    if not city_id:
+        return jsonify([])
+    
     conn = get_db_connection()
     results = []
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
-            sql = """
+            # Ищем ТОЛЬКО в выбранном городе
+            cursor.execute("""
                 SELECT id, name, city_id FROM street 
-                WHERE name LIKE %s
-            """
-            params = [f'%{query}%']
-            if city_id:
-                sql += " AND city_id = %s"
-                params.append(city_id)
-            sql += " ORDER BY name LIMIT 10"
-            
-            cursor.execute(sql, params)
+                WHERE city_id = %s AND name LIKE %s
+                ORDER BY name LIMIT 10
+            """, (city_id, f'%{query}%'))
             results = cursor.fetchall()
         except Error as e:
             print(f"Ошибка: {e}")
@@ -284,13 +313,19 @@ def add_delivery_address():
             conn.commit()
             
             flash('Адрес успешно добавлен!', 'success')
+            
+            # Если пользователь пришел из checkout, перенаправляем обратно
+            referer = request.referrer or ''
+            if 'checkout' in referer:
+                return redirect(url_for('order.checkout'))
+                
         except Error as e:
             conn.rollback()
             flash(f'Ошибка добавления адреса: {str(e)}', 'danger')
         finally:
             conn.close()
     
-    return redirect(url_for('profile.profile'))
+    return redirect(url_for('profile.profile', tab='addresses'))
 
 
 @profile_bp.route('/profile/address/delete/<int:address_id>')
@@ -309,7 +344,7 @@ def delete_delivery_address(address_id):
         finally:
             conn.close()
     
-    return redirect(url_for('profile.profile'))
+    return redirect(url_for('profile.profile', tab='addresses'))
 
 
 @profile_bp.route('/profile/address/set-default/<int:address_id>')
@@ -329,4 +364,176 @@ def set_default_address(address_id):
         finally:
             conn.close()
     
-    return redirect(url_for('profile.profile'))
+    return redirect(url_for('profile.profile', tab='addresses'))
+
+
+@profile_bp.route('/profile/order/<int:order_id>')
+@login_required
+def order_detail(order_id):
+    """Детальный просмотр заказа"""
+    conn = get_db_connection()
+    order = None
+    order_items = []
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            # Получаем информацию о заказе с адресом
+            cursor.execute("""
+                SELECT o.*, os.name as status_name,
+                       a.house, a.apartment, a.entrance, a.floor, a.postal_code,
+                       s.name as street_name, c.name as city_name, 
+                       r.name as region_name, co.name as country_name
+                FROM orders o 
+                JOIN order_status os ON o.status_id = os.id
+                JOIN address a ON o.address_id = a.id
+                JOIN street s ON a.street_id = s.id
+                JOIN city c ON s.city_id = c.id
+                JOIN region r ON c.region_id = r.id
+                JOIN country co ON r.country_id = co.id
+                WHERE o.id = %s AND o.user_id = %s
+            """, (order_id, session['user_id']))
+            order = cursor.fetchone()
+            
+            if not order:
+                flash('Заказ не найден', 'danger')
+                return redirect(url_for('profile.profile', tab='orders'))
+            
+            # Получаем товары в заказе
+            cursor.execute("""
+                SELECT oi.*, p.image_url
+                FROM order_item oi
+                LEFT JOIN product p ON oi.product_id = p.id
+                WHERE oi.order_id = %s
+                ORDER BY oi.id
+            """, (order_id,))
+            order_items = cursor.fetchall()
+            
+        except Error as e:
+            flash(f'Ошибка загрузки заказа: {str(e)}', 'danger')
+        finally:
+            conn.close()
+    
+    return render_template('user/order_detail.html', 
+                          order=order, 
+                          order_items=order_items)
+
+
+@profile_bp.route('/profile/order/<int:order_id>/cancel', methods=['POST'])
+@login_required
+def cancel_order(order_id):
+    """Отмена заказа"""
+    conn = get_db_connection()
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            # Проверяем, что заказ существует и принадлежит пользователю
+            cursor.execute("""
+                SELECT id, status_id FROM orders 
+                WHERE id = %s AND user_id = %s
+            """, (order_id, session['user_id']))
+            order = cursor.fetchone()
+            
+            if not order:
+                return jsonify({'success': False, 'message': 'Заказ не найден'})
+            
+            # Можно отменить только заказ в статусе "Новый" (status_id = 1)
+            if order['status_id'] != 1:
+                return jsonify({'success': False, 'message': 'Этот заказ нельзя отменить'})
+            
+            # Обновляем статус на "Отменен" (status_id = 5)
+            cursor.execute("""
+                UPDATE orders SET status_id = 5 WHERE id = %s
+            """, (order_id,))
+            
+            # Возвращаем товары на склад
+            cursor.execute("""
+                SELECT product_id, quantity FROM order_item WHERE order_id = %s
+            """, (order_id,))
+            items = cursor.fetchall()
+            
+            for item in items:
+                cursor.execute("""
+                    UPDATE product SET stock = stock + %s WHERE id = %s
+                """, (item['quantity'], item['product_id']))
+            
+            conn.commit()
+            return jsonify({'success': True, 'message': 'Заказ отменен'})
+            
+        except Error as e:
+            conn.rollback()
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            conn.close()
+    
+    return jsonify({'success': False, 'message': 'Ошибка подключения к БД'})
+
+
+@profile_bp.route('/profile/order/<int:order_id>/repeat', methods=['POST'])
+@login_required
+def repeat_order(order_id):
+    """Повторить заказ (добавить все товары в корзину)"""
+    conn = get_db_connection()
+    
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            # Получаем товары из заказа
+            cursor.execute("""
+                SELECT product_id, quantity FROM order_item WHERE order_id = %s
+            """, (order_id,))
+            items = cursor.fetchall()
+            
+            if not items:
+                return jsonify({'success': False, 'message': 'Заказ пуст'})
+            
+            # Получаем или создаем корзину пользователя
+            cursor.execute("SELECT id FROM cart WHERE user_id = %s", (session['user_id'],))
+            cart = cursor.fetchone()
+            
+            if not cart:
+                cursor.execute("INSERT INTO cart (user_id) VALUES (%s)", (session['user_id'],))
+                conn.commit()
+                cart_id = cursor.lastrowid
+            else:
+                cart_id = cart['id']
+            
+            # Добавляем товары в корзину
+            for item in items:
+                # Проверяем, есть ли уже такой товар в корзине
+                cursor.execute("""
+                    SELECT id, quantity FROM cart_item 
+                    WHERE cart_id = %s AND product_id = %s
+                """, (cart_id, item['product_id']))
+                existing = cursor.fetchone()
+                
+                # Получаем актуальную цену товара
+                cursor.execute("SELECT price FROM product WHERE id = %s", (item['product_id'],))
+                product = cursor.fetchone()
+                current_price = product['price'] if product else 0
+                
+                if existing:
+                    # Обновляем количество
+                    new_quantity = existing['quantity'] + item['quantity']
+                    cursor.execute("""
+                        UPDATE cart_item SET quantity = %s, price = %s 
+                        WHERE id = %s
+                    """, (new_quantity, current_price, existing['id']))
+                else:
+                    # Добавляем новый товар
+                    cursor.execute("""
+                        INSERT INTO cart_item (cart_id, product_id, quantity, price)
+                        VALUES (%s, %s, %s, %s)
+                    """, (cart_id, item['product_id'], item['quantity'], current_price))
+            
+            conn.commit()
+            return jsonify({'success': True, 'message': 'Товары добавлены в корзину'})
+            
+        except Error as e:
+            conn.rollback()
+            return jsonify({'success': False, 'message': str(e)})
+        finally:
+            conn.close()
+    
+    return jsonify({'success': False, 'message': 'Ошибка подключения к БД'})

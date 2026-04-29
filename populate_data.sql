@@ -1,4 +1,47 @@
 -- =====================================================
+-- ОЧИСТКА ВСЕХ ТАБЛИЦ (с учетом внешних ключей)
+-- =====================================================
+
+USE product_store;
+
+SET FOREIGN_KEY_CHECKS = 0;
+SET SQL_SAFE_UPDATES = 0;
+
+-- Очистка таблиц с данными (в правильном порядке)
+TRUNCATE TABLE order_item;
+TRUNCATE TABLE orders;
+TRUNCATE TABLE cart_item;
+TRUNCATE TABLE cart;
+TRUNCATE TABLE address;
+TRUNCATE TABLE street;
+TRUNCATE TABLE city;
+TRUNCATE TABLE region;
+TRUNCATE TABLE country;
+TRUNCATE TABLE user;
+TRUNCATE TABLE product;
+TRUNCATE TABLE category;
+TRUNCATE TABLE order_status;
+
+-- Сброс AUTO_INCREMENT (опционально)
+ALTER TABLE user AUTO_INCREMENT = 1;
+ALTER TABLE country AUTO_INCREMENT = 1;
+ALTER TABLE region AUTO_INCREMENT = 1;
+ALTER TABLE city AUTO_INCREMENT = 1;
+ALTER TABLE street AUTO_INCREMENT = 1;
+ALTER TABLE address AUTO_INCREMENT = 1;
+ALTER TABLE product AUTO_INCREMENT = 1;
+ALTER TABLE category AUTO_INCREMENT = 1;
+ALTER TABLE orders AUTO_INCREMENT = 1;
+ALTER TABLE order_item AUTO_INCREMENT = 1;
+ALTER TABLE cart AUTO_INCREMENT = 1;
+ALTER TABLE cart_item AUTO_INCREMENT = 1;
+
+SET FOREIGN_KEY_CHECKS = 1;
+SET SQL_SAFE_UPDATES = 1;
+
+SELECT 'ВСЕ ТАБЛИЦЫ ОЧИЩЕНЫ!' AS message;
+
+-- =====================================================
 -- НАПОЛНЕНИЕ БАЗЫ ДАННЫХ product_store
 -- =====================================================
 
@@ -48,7 +91,11 @@ INSERT INTO region (name, country_id) VALUES
 ('Красноярский край', 1),
 ('Пермский край', 1),
 ('Волгоградская область', 1),
-('Оренбургская область', 1);  -- Добавлена Оренбургская область
+('Оренбургская область', 1),
+('Республика Башкортостан', 1),
+('Тюменская область', 1),
+('Иркутская область', 1),
+('Воронежская область', 1);
 
 -- =====================================================
 -- 4. ГОРОДА
@@ -101,6 +148,15 @@ INSERT INTO city (name, region_id) VALUES
 ('Самара', 11),
 ('Тольятти', 11),
 ('Сызрань', 11),
+-- Челябинская область
+('Челябинск', 12),
+('Магнитогорск', 12),
+-- Красноярский край
+('Красноярск', 13),
+-- Пермский край
+('Пермь', 14),
+-- Волгоградская область
+('Волгоград', 15),
 -- Оренбургская область
 ('Оренбург', 16),
 ('Орск', 16),
@@ -110,96 +166,367 @@ INSERT INTO city (name, region_id) VALUES
 ('Гай', 16),
 ('Медногорск', 16),
 ('Кувандык', 16),
-('Сорочинск', 16);
+('Сорочинск', 16),
+('Абдулино', 16),
+('Ясный', 16),
+-- Республика Башкортостан
+('Уфа', 17),
+('Стерлитамак', 17),
+('Салават', 17),
+-- Тюменская область
+('Тюмень', 18),
+-- Иркутская область
+('Иркутск', 19),
+-- Воронежская область
+('Воронеж', 20);
 
 -- =====================================================
--- 5. УЛИЦЫ
+-- 5. УЛИЦЫ (с использованием подзапросов для правильных city_id)
 -- =====================================================
-INSERT INTO street (name, city_id) VALUES 
--- Москва
-('Тверская', 1),
-('Арбат', 1),
-('Новый Арбат', 1),
-('Ленинский проспект', 1),
-('Кутузовский проспект', 1),
-('Проспект Мира', 1),
-('Ленинградский проспект', 1),
-('Садовое кольцо', 1),
-('Бульварное кольцо', 1),
-('Покровка', 1),
-('Мясницкая', 1),
--- Санкт-Петербург
-('Невский проспект', 11),
-('Московский проспект', 11),
-('Лиговский проспект', 11),
-('Большой проспект', 11),
--- Одинцово
-('Можайское шоссе', 2),
-('Комсомольская', 2),
-('Маршала Жукова', 2),
-('Чикина', 2),
--- Красногорск
-('Речная', 3),
-('Ленина', 3),
-('Советская', 3),
--- Казань
-('Баумана', 23),
-('Кремлевская', 23),
-('Петербургская', 23),
--- Екатеринбург
-('Ленина', 20),
-('Малышева', 20),
-('Татищева', 20),
--- Новосибирск
-('Красный проспект', 17),
-('Ленина', 17),
-('Димитрова', 17),
--- Оренбург (city_id = 45 для Оренбурга)
-('Советская', 45),
-('Ленинская', 45),
-('Постникова', 45),
-('Чкалова', 45),
-('Терешковой', 45),
-('Мира', 45),
-('Гагарина', 45),
-('Пушкинская', 45),
-('Володарского', 45),
-('Кирова', 45),
-('Степана Разина', 45),
-('Парковый проспект', 45),
-('Донгузская', 45),
-('Шевченко', 45),
-('Карагандинская', 45),
--- Орск (city_id = 46)
-('Ленина', 46),
-('Мира', 46),
-('Станиславского', 46),
-('Краматорская', 46),
-('Нефтяников', 46),
--- Новотроицк (city_id = 47)
-('Советская', 47),
-('Металлургов', 47),
-('Железнодорожная', 47),
-('Комсомольская', 47),
--- Бузулук (city_id = 48)
-('Ленина', 48),
-('Московская', 48),
-('Чапаева', 48),
-('Кирова', 48),
--- Соль-Илецк (city_id = 49)
-('Ленина', 49),
-('Оренбургская', 49),
-('Степная', 49);
+
+-- МОСКВА
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Москва' LIMIT 1) FROM (
+    SELECT 'Тверская' as name UNION ALL
+    SELECT 'Арбат' UNION ALL
+    SELECT 'Новый Арбат' UNION ALL
+    SELECT 'Ленинский проспект' UNION ALL
+    SELECT 'Кутузовский проспект' UNION ALL
+    SELECT 'Проспект Мира' UNION ALL
+    SELECT 'Ленинградский проспект' UNION ALL
+    SELECT 'Садовое кольцо' UNION ALL
+    SELECT 'Бульварное кольцо' UNION ALL
+    SELECT 'Покровка' UNION ALL
+    SELECT 'Мясницкая' UNION ALL
+    SELECT 'Большая Дмитровка' UNION ALL
+    SELECT 'Петровка' UNION ALL
+    SELECT 'Цветной бульвар' UNION ALL
+    SELECT 'Рождественский бульвар' UNION ALL
+    SELECT 'Страстной бульвар' UNION ALL
+    SELECT 'Чистопрудный бульвар' UNION ALL
+    SELECT 'Пресненская набережная' UNION ALL
+    SELECT 'Льва Толстого' UNION ALL
+    SELECT 'Остоженка' UNION ALL
+    SELECT 'Пречистенка'
+) AS streets;
+
+-- САНКТ-ПЕТЕРБУРГ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Санкт-Петербург' LIMIT 1) FROM (
+    SELECT 'Невский проспект' as name UNION ALL
+    SELECT 'Московский проспект' UNION ALL
+    SELECT 'Лиговский проспект' UNION ALL
+    SELECT 'Большой проспект П.С.' UNION ALL
+    SELECT 'Садовая улица' UNION ALL
+    SELECT 'Набережная реки Фонтанки' UNION ALL
+    SELECT 'Каменноостровский проспект' UNION ALL
+    SELECT 'Владимирский проспект' UNION ALL
+    SELECT 'Загородный проспект' UNION ALL
+    SELECT 'Рубинштейна' UNION ALL
+    SELECT 'Малая Садовая' UNION ALL
+    SELECT 'Большая Конюшенная' UNION ALL
+    SELECT 'Некрасова' UNION ALL
+    SELECT 'Восстания' UNION ALL
+    SELECT 'Ломоносова'
+) AS streets;
+
+-- ЕКАТЕРИНБУРГ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Екатеринбург' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Малышева' UNION ALL
+    SELECT 'Татищева' UNION ALL
+    SELECT 'Белинского' UNION ALL
+    SELECT 'Московская' UNION ALL
+    SELECT 'Луначарского' UNION ALL
+    SELECT 'Щорса' UNION ALL
+    SELECT 'Куйбышева' UNION ALL
+    SELECT 'Свердлова' UNION ALL
+    SELECT 'Карла Либкнехта' UNION ALL
+    SELECT 'Тверитина' UNION ALL
+    SELECT '8 Марта' UNION ALL
+    SELECT 'Фрунзе'
+) AS streets;
+
+-- КАЗАНЬ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Казань' LIMIT 1) FROM (
+    SELECT 'Баумана' as name UNION ALL
+    SELECT 'Кремлевская' UNION ALL
+    SELECT 'Петербургская' UNION ALL
+    SELECT 'Карла Маркса' UNION ALL
+    SELECT 'Пушкина' UNION ALL
+    SELECT 'Гоголя' UNION ALL
+    SELECT 'Толстого' UNION ALL
+    SELECT 'Чернышевского' UNION ALL
+    SELECT 'Университетская' UNION ALL
+    SELECT 'Дзержинского' UNION ALL
+    SELECT 'Татарстан' UNION ALL
+    SELECT 'Чистопольская'
+) AS streets;
+
+-- НОВОСИБИРСК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Новосибирск' LIMIT 1) FROM (
+    SELECT 'Красный проспект' as name UNION ALL
+    SELECT 'Ленина' UNION ALL
+    SELECT 'Димитрова' UNION ALL
+    SELECT 'Горького' UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Советская' UNION ALL
+    SELECT 'Вокзальная магистраль' UNION ALL
+    SELECT 'Писарева' UNION ALL
+    SELECT 'Серебренниковская' UNION ALL
+    SELECT 'Фрунзе'
+) AS streets;
+
+-- КРАСНОДАР
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Краснодар' LIMIT 1) FROM (
+    SELECT 'Красная' as name UNION ALL
+    SELECT 'Северная' UNION ALL
+    SELECT 'Ставропольская' UNION ALL
+    SELECT 'Калинина' UNION ALL
+    SELECT 'Кубанская набережная' UNION ALL
+    SELECT 'Рашпилевская' UNION ALL
+    SELECT 'Коммунаров' UNION ALL
+    SELECT 'Октябрьская'
+) AS streets;
+
+-- СОЧИ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Сочи' LIMIT 1) FROM (
+    SELECT 'Навагинская' as name UNION ALL
+    SELECT 'Курортный проспект' UNION ALL
+    SELECT 'Московская' UNION ALL
+    SELECT 'Виноградная' UNION ALL
+    SELECT 'Пластунская' UNION ALL
+    SELECT 'Донская'
+) AS streets;
+
+-- РОСТОВ-НА-ДОНУ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Ростов-на-Дону' LIMIT 1) FROM (
+    SELECT 'Большая Садовая' as name UNION ALL
+    SELECT 'Пушкинская' UNION ALL
+    SELECT 'Кировский проспект' UNION ALL
+    SELECT 'Буденновский проспект' UNION ALL
+    SELECT 'Ворошиловский проспект' UNION ALL
+    SELECT 'Театральный проспект' UNION ALL
+    SELECT 'Набережная'
+) AS streets;
+
+-- ОРЕНБУРГ (50+ улиц)
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Оренбург' LIMIT 1) FROM (
+    SELECT 'Советская' as name UNION ALL
+    SELECT 'Ленинская' UNION ALL
+    SELECT 'Постникова' UNION ALL
+    SELECT 'Чкалова' UNION ALL
+    SELECT 'Терешковой' UNION ALL
+    SELECT 'Мира' UNION ALL
+    SELECT 'Гагарина' UNION ALL
+    SELECT 'Пушкинская' UNION ALL
+    SELECT 'Володарского' UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Степана Разина' UNION ALL
+    SELECT 'Парковый проспект' UNION ALL
+    SELECT 'Донгузская' UNION ALL
+    SELECT 'Шевченко' UNION ALL
+    SELECT 'Карагандинская' UNION ALL
+    SELECT 'Бурзянцева' UNION ALL
+    SELECT 'Рыбаковская' UNION ALL
+    SELECT 'Новая' UNION ALL
+    SELECT 'Ткачева' UNION ALL
+    SELECT 'Дзержинского' UNION ALL
+    SELECT 'Ромашковская' UNION ALL
+    SELECT 'Загородное шоссе' UNION ALL
+    SELECT 'Малая Земля' UNION ALL
+    SELECT 'Транспортная' UNION ALL
+    SELECT 'Салмышская' UNION ALL
+    SELECT 'Орская' UNION ALL
+    SELECT 'Цвиллинга' UNION ALL
+    SELECT 'Стрелковая' UNION ALL
+    SELECT 'Монтажников' UNION ALL
+    SELECT 'Серова' UNION ALL
+    SELECT 'Комсомольская' UNION ALL
+    SELECT 'Октябрьская' UNION ALL
+    SELECT 'Революционная' UNION ALL
+    SELECT 'Пионерская' UNION ALL
+    SELECT 'Луговая' UNION ALL
+    SELECT 'Степная' UNION ALL
+    SELECT 'Уральская' UNION ALL
+    SELECT 'Железнодорожная' UNION ALL
+    SELECT 'Вокзальная' UNION ALL
+    SELECT 'Индустриальная' UNION ALL
+    SELECT 'Заводская' UNION ALL
+    SELECT 'Южная' UNION ALL
+    SELECT 'Северная' UNION ALL
+    SELECT 'Восточная' UNION ALL
+    SELECT 'Западная' UNION ALL
+    SELECT 'Центральная' UNION ALL
+    SELECT 'Молодежная' UNION ALL
+    SELECT 'Строителей' UNION ALL
+    SELECT 'Нефтяников' UNION ALL
+    SELECT 'Машиностроителей' UNION ALL
+    SELECT 'Энергетиков'
+) AS streets;
+
+-- ОРСК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Орск' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Мира' UNION ALL
+    SELECT 'Станиславского' UNION ALL
+    SELECT 'Краматорская' UNION ALL
+    SELECT 'Нефтяников' UNION ALL
+    SELECT 'Шелухина' UNION ALL
+    SELECT 'Московская' UNION ALL
+    SELECT 'Новая' UNION ALL
+    SELECT 'Советская' UNION ALL
+    SELECT 'Орджоникидзе'
+) AS streets;
+
+-- НОВОТРОИЦК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Новотроицк' LIMIT 1) FROM (
+    SELECT 'Советская' as name UNION ALL
+    SELECT 'Металлургов' UNION ALL
+    SELECT 'Железнодорожная' UNION ALL
+    SELECT 'Комсомольская' UNION ALL
+    SELECT 'Уральская' UNION ALL
+    SELECT 'Победы' UNION ALL
+    SELECT 'Ленина' UNION ALL
+    SELECT 'Гагарина'
+) AS streets;
+
+-- БУЗУЛУК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Бузулук' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Московская' UNION ALL
+    SELECT 'Чапаева' UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Октябрьская' UNION ALL
+    SELECT '1 Мая' UNION ALL
+    SELECT 'Советская' UNION ALL
+    SELECT 'Гагарина'
+) AS streets;
+
+-- СОЛЬ-ИЛЕЦК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Соль-Илецк' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Оренбургская' UNION ALL
+    SELECT 'Степная' UNION ALL
+    SELECT 'Уральская' UNION ALL
+    SELECT 'Курортная' UNION ALL
+    SELECT 'Советская'
+) AS streets;
+
+-- УФА
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Уфа' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Октября проспект' UNION ALL
+    SELECT 'Цюрупы' UNION ALL
+    SELECT 'Коммунистическая' UNION ALL
+    SELECT 'Пушкина' UNION ALL
+    SELECT 'Карла Маркса' UNION ALL
+    SELECT 'Заки Валиди' UNION ALL
+    SELECT 'Гоголя'
+) AS streets;
+
+-- ЧЕЛЯБИНСК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Челябинск' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Труда' UNION ALL
+    SELECT 'Воровского' UNION ALL
+    SELECT 'Коммуны' UNION ALL
+    SELECT 'Свердловский проспект'
+) AS streets;
+
+-- САМАРА
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Самара' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Куйбышева' UNION ALL
+    SELECT 'Московское шоссе' UNION ALL
+    SELECT 'Полевая' UNION ALL
+    SELECT 'Садовая' UNION ALL
+    SELECT 'Победы'
+) AS streets;
+
+-- НИЖНИЙ НОВГОРОД
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Нижний Новгород' LIMIT 1) FROM (
+    SELECT 'Большая Покровская' as name UNION ALL
+    SELECT 'Максима Горького' UNION ALL
+    SELECT 'Белинского' UNION ALL
+    SELECT 'Рождественская' UNION ALL
+    SELECT 'Варварская'
+) AS streets;
+
+-- ВОРОНЕЖ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Воронеж' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Плехановская' UNION ALL
+    SELECT 'Кирова' UNION ALL
+    SELECT 'Фридриха Энгельса' UNION ALL
+    SELECT 'Революции проспект'
+) AS streets;
+
+-- ПЕРМЬ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Пермь' LIMIT 1) FROM (
+    SELECT 'Ленина' as name UNION ALL
+    SELECT 'Комсомольский проспект' UNION ALL
+    SELECT 'Петропавловская' UNION ALL
+    SELECT 'Мира'
+) AS streets;
+
+-- КРАСНОЯРСК
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Красноярск' LIMIT 1) FROM (
+    SELECT 'Мира проспект' as name UNION ALL
+    SELECT 'Ленина' UNION ALL
+    SELECT 'Красноярский рабочий' UNION ALL
+    SELECT 'Карла Маркса'
+) AS streets;
+
+-- ТЮМЕНЬ
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Тюмень' LIMIT 1) FROM (
+    SELECT 'Республики' as name UNION ALL
+    SELECT 'Ленина' UNION ALL
+    SELECT 'Мельникайте' UNION ALL
+    SELECT 'Пермякова'
+) AS streets;
+
+-- ВОЛГОГРАД
+INSERT INTO street (name, city_id) 
+SELECT name, (SELECT id FROM city WHERE name = 'Волгоград' LIMIT 1) FROM (
+    SELECT 'Ленина проспект' as name UNION ALL
+    SELECT 'Мира' UNION ALL
+    SELECT 'Комсомольская' UNION ALL
+    SELECT 'Калинина'
+) AS streets;
 
 -- =====================================================
 -- 6. АДРЕСА ПОЛЬЗОВАТЕЛЕЙ
 -- =====================================================
 INSERT INTO address (user_id, street_id, house, apartment, entrance, floor, postal_code, is_default) VALUES
-(2, 1, '15', '78', '3', 7, '125009', TRUE),
-(2, 11, '25', '12', '2', 4, '107031', FALSE),
-(3, 12, '10', '45', '1', 5, '191186', TRUE),
-(4, 25, '22', '8', '2', 3, '420111', TRUE),
-(5, 20, '8', '34', '1', 6, '620014', TRUE);
+(2, (SELECT id FROM street WHERE name = 'Тверская' AND city_id = (SELECT id FROM city WHERE name = 'Москва') LIMIT 1), '15', '78', '3', 7, '125009', TRUE),
+(2, (SELECT id FROM street WHERE name = 'Мясницкая' AND city_id = (SELECT id FROM city WHERE name = 'Москва') LIMIT 1), '25', '12', '2', 4, '107031', FALSE),
+(3, (SELECT id FROM street WHERE name = 'Невский проспект' AND city_id = (SELECT id FROM city WHERE name = 'Санкт-Петербург') LIMIT 1), '10', '45', '1', 5, '191186', TRUE),
+(4, (SELECT id FROM street WHERE name = 'Баумана' AND city_id = (SELECT id FROM city WHERE name = 'Казань') LIMIT 1), '22', '8', '2', 3, '420111', TRUE),
+(5, (SELECT id FROM street WHERE name = 'Ленина' AND city_id = (SELECT id FROM city WHERE name = 'Екатеринбург') LIMIT 1), '8', '34', '1', 6, '620014', TRUE),
+(2, (SELECT id FROM street WHERE name = 'Советская' AND city_id = (SELECT id FROM city WHERE name = 'Оренбург') LIMIT 1), '50', '120', '1', 4, '460000', FALSE),
+(3, (SELECT id FROM street WHERE name = 'Постникова' AND city_id = (SELECT id FROM city WHERE name = 'Оренбург') LIMIT 1), '25', '5', '2', 3, '460000', FALSE);
 
 -- =====================================================
 -- 7. СТАТУСЫ ЗАКАЗОВ
@@ -349,6 +676,18 @@ SELECT COUNT(*) as total_users FROM user;
 SELECT COUNT(*) as total_products FROM product;
 SELECT COUNT(*) as total_orders FROM orders;
 SELECT COUNT(*) as total_addresses FROM address;
+SELECT COUNT(*) as total_cities FROM city;
+SELECT COUNT(*) as total_streets FROM street;
+
+-- Проверка улиц по городам
+SELECT 
+    c.name AS city,
+    COUNT(s.id) AS streets_count
+FROM city c
+LEFT JOIN street s ON s.city_id = c.id
+WHERE c.name IN ('Оренбург', 'Орск', 'Новотроицк', 'Бузулук', 'Соль-Илецк', 'Москва', 'Санкт-Петербург')
+GROUP BY c.id, c.name
+ORDER BY c.name;
 
 SELECT c.name as category, COUNT(*) as products_count 
 FROM product p 

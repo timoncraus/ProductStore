@@ -1,0 +1,421 @@
+{% extends "base.html" %}
+
+{% block title %}Детали заказа #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="order-detail-container">
+    <div class="order-header">
+        <h1>Заказ #{{ order.order_number }}</h1>
+        <div class="order-status-badge status-{{ order.status_id }}">
+            {{ order.status_name }}
+        </div>
+    </div>
+    
+    <div class="order-detail-content">
+        <div class="order-info-section">
+            <div class="info-card">
+                <h3>Информация о заказе</h3>
+                <div class="info-row">
+                    <span class="info-label">Дата заказа:</span>
+                    <span class="info-value">{{ order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at else '-' }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Статус:</span>
+                    <span class="info-value status-{{ order.status_id }}">{{ order.status_name }}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Сумма заказа:</span>
+                    <span class="info-value total-amount">{{ "%.2f"|format(order.total_amount) }} ₽</span>
+                </div>
+                {% if order.comment %}
+                <div class="info-row">
+                    <span class="info-label">Комментарий:</span>
+                    <span class="info-value">{{ order.comment }}</span>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="info-card">
+                <h3>Адрес доставки</h3>
+                <div class="address-detail">
+                    <div class="address-line">
+                        <strong>{{ order.country_name }}, {{ order.region_name }}, {{ order.city_name }}</strong>
+                    </div>
+                    <div class="address-line">
+                        ул. {{ order.street_name }}, д. {{ order.house }}
+                        {% if order.apartment %}, кв. {{ order.apartment }}{% endif %}
+                    </div>
+                    {% if order.entrance or order.floor %}
+                    <div class="address-line">
+                        {% if order.entrance %}подъезд {{ order.entrance }}{% endif %}
+                        {% if order.floor %}, этаж {{ order.floor }}{% endif %}
+                    </div>
+                    {% endif %}
+                    {% if order.postal_code %}
+                    <div class="address-line">
+                        Почтовый индекс: {{ order.postal_code }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="order-items-section">
+            <h3>Товары в заказе</h3>
+            <div class="order-items-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Товар</th>
+                            <th>Цена</th>
+                            <th>Количество</th>
+                            <th>Сумма</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in order_items %}
+                        <tr>
+                            <td class="product-name">
+                                <a href="{{ url_for('catalog.product_detail', product_id=item.product_id) }}">
+                                    {{ item.product_name }}
+                                </a>
+                            </td>
+                            <td class="product-price">{{ "%.2f"|format(item.price) }} ₽</td>
+                            <td class="product-quantity">{{ item.quantity }}</td>
+                            <td class="product-total">{{ "%.2f"|format(item.price * item.quantity) }} ₽</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="total-row">
+                            <td colspan="3" class="total-label"><strong>Итого:</strong></td>
+                            <td class="total-amount"><strong>{{ "%.2f"|format(order.total_amount) }} ₽</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        
+        <div class="order-actions">
+            <a href="{{ url_for('profile.profile', tab='orders') }}" class="btn btn-secondary">
+                ← Вернуться к списку заказов
+            </a>
+            {% if order.status_id == 1 %}
+            <button class="btn btn-danger" onclick="cancelOrder({{ order.id }})">
+                Отменить заказ
+            </button>
+            {% endif %}
+            {% if order.status_id == 4 %}
+            <button class="btn btn-primary" onclick="repeatOrder({{ order.id }})">
+                Повторить заказ
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function cancelOrder(orderId) {
+    if (confirm('Вы уверены, что хотите отменить этот заказ?')) {
+        fetch(`/profile/order/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Заказ успешно отменен');
+                location.reload();
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Произошла ошибка при отмене заказа');
+        });
+    }
+}
+
+function repeatOrder(orderId) {
+    if (confirm('Повторить этот заказ? Все товары будут добавлены в корзину')) {
+        fetch(`/profile/order/${orderId}/repeat`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/cart';
+            } else {
+                alert('Ошибка: ' + data.message);
+            }
+        })
+        .catch(error => {
+            alert('Произошла ошибка при повторении заказа');
+        });
+    }
+}
+</script>
+
+<style>
+.order-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: white;
+}
+
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 3px solid #2ecc71;
+}
+
+.order-header h1 {
+    color: #1a472a;
+    margin: 0;
+}
+
+.order-status-badge {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.order-status-badge.status-1 {
+    background: #fff3cd;
+    color: #856404;
+}
+.order-status-badge.status-2 {
+    background: #cce5ff;
+    color: #004085;
+}
+.order-status-badge.status-3 {
+    background: #d4edda;
+    color: #155724;
+}
+.order-status-badge.status-4 {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+.order-status-badge.status-5 {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.order-detail-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.order-info-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.info-card {
+    background: #f8fff8;
+    border: 2px solid #2ecc71;
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.info-card h3 {
+    color: #1a472a;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2ecc71;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #d4e6d4;
+}
+
+.info-row:last-child {
+    border-bottom: none;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #1a472a;
+}
+
+.info-value {
+    color: #333;
+}
+
+.info-value.total-amount {
+    font-size: 18px;
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+.address-detail {
+    line-height: 1.8;
+}
+
+.address-line {
+    padding: 5px 0;
+    color: #333;
+}
+
+.order-items-section h3 {
+    color: #1a472a;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #2ecc71;
+}
+
+.order-items-table {
+    overflow-x: auto;
+}
+
+.order-items-table table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.order-items-table th {
+    background: #1a472a;
+    color: white;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+}
+
+.order-items-table td {
+    padding: 12px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.order-items-table tr:hover {
+    background: #f9fff9;
+}
+
+.product-name a {
+    color: #1a472a;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.product-name a:hover {
+    color: #2ecc71;
+    text-decoration: underline;
+}
+
+.product-price, .product-quantity, .product-total {
+    text-align: right;
+}
+
+.product-total {
+    font-weight: 600;
+}
+
+.total-row {
+    background: #f8fff8;
+    font-size: 16px;
+}
+
+.total-label {
+    text-align: right;
+    color: #1a472a;
+}
+
+.total-amount {
+    color: #2ecc71;
+    font-size: 18px;
+}
+
+.order-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #e0e0e0;
+}
+
+.btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+
+.btn-secondary {
+    background: #6c757d;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: #5a6268;
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #1a472a 0%, #2ecc71 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #0d331e 0%, #27ae60 100%);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 768px) {
+    .order-info-section {
+        grid-template-columns: 1fr;
+    }
+    
+    .order-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .order-actions {
+        flex-direction: column;
+    }
+    
+    .btn {
+        text-align: center;
+    }
+    
+    .info-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+}
+</style>
+{% endblock %}

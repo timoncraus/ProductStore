@@ -1,142 +1,486 @@
-{% extends "base.html" %} {% block title %}Управление заказами{% endblock %} {%
-block content %}
-<h1>Управление заказами</h1>
+{% extends "base.html" %}
 
-<div class="table-responsive">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>№ заказа</th>
-        <th>Пользователь</th>
-        <th>Сумма</th>
-        <th>Статус</th>
-        <th>Оплата</th>
-        <th>Дата</th>
-        <th>Действия</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for order in orders %}
-      <tr>
-        <td>{{ order.order_number }}</td>
-        <td>{{ order.username }}</td>
-        <td>{{ order.total_amount }} ₽</td>
-        <td>
-          <form
-            method="POST"
-            action="{{ url_for('update_order_status', order_id=order.id) }}"
-          >
-            <select name="status_id" onchange="this.form.submit()">
-              <option
-                value="1"
-                {%
-                if
-                order.status_id=""
-                ="1"
-                %}selected{%
-                endif
-                %}
-              >
-                Новый
-              </option>
-              <option
-                value="2"
-                {%
-                if
-                order.status_id=""
-                ="2"
-                %}selected{%
-                endif
-                %}
-              >
-                Ожидает оплаты
-              </option>
-              <option
-                value="3"
-                {%
-                if
-                order.status_id=""
-                ="3"
-                %}selected{%
-                endif
-                %}
-              >
-                Оплачен
-              </option>
-              <option
-                value="4"
-                {%
-                if
-                order.status_id=""
-                ="4"
-                %}selected{%
-                endif
-                %}
-              >
-                В обработке
-              </option>
-              <option
-                value="5"
-                {%
-                if
-                order.status_id=""
-                ="5"
-                %}selected{%
-                endif
-                %}
-              >
-                Отправлен
-              </option>
-              <option
-                value="6"
-                {%
-                if
-                order.status_id=""
-                ="6"
-                %}selected{%
-                endif
-                %}
-              >
-                Доставлен
-              </option>
-              <option
-                value="7"
-                {%
-                if
-                order.status_id=""
-                ="7"
-                %}selected{%
-                endif
-                %}
-              >
-                Завершён
-              </option>
-              <option
-                value="8"
-                {%
-                if
-                order.status_id=""
-                ="8"
-                %}selected{%
-                endif
-                %}
-              >
-                Отменён
-              </option>
-            </select>
-          </form>
-        </td>
-        <td>{{ order.payment_method_name }}</td>
-        <td>
-          {{ order.created_at.strftime('%d.%m.%Y') if order.created_at else '-'
-          }}
-        </td>
-        <td>
-          <a href="#" class="btn-view">👁️</a>
-        </td>
-      </tr>
+{% block title %}Управление заказами{% endblock %}
+
+{% block extra_css %}
+<style>
+  .admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .admin-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .admin-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    font-style: italic;
+    margin: 0;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 40px;
+  }
+
+  .stat-card {
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-md);
+    text-align: center;
+    transition: var(--transition);
+    cursor: pointer;
+    border: 1px solid rgba(0, 200, 83, 0.1);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .stat-card.active {
+    border: 2px solid var(--primary);
+    background: linear-gradient(135deg, rgba(0, 200, 83, 0.05), transparent);
+  }
+
+  .stat-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--primary);
+  }
+
+  .stat-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+  }
+
+  .filters-bar {
+    background: var(--white);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    align-items: flex-end;
+  }
+
+  .filter-group {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .filter-group label {
+    display: block;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    color: #666;
+  }
+
+  .filter-group input,
+  .filter-group select {
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    border-radius: var(--radius-md);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 0.9rem;
+    transition: var(--transition);
+  }
+
+  .filter-group input:focus,
+  .filter-group select:focus {
+    outline: none;
+    border-color: var(--primary);
+  }
+
+  .btn-filter {
+    background: var(--primary);
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .btn-filter:hover {
+    background: var(--primary-dark);
+  }
+
+  .btn-reset {
+    background: #6c757d;
+    color: white;
+    padding: 10px 25px;
+    border: none;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+  }
+
+  .btn-reset:hover {
+    background: #5a6268;
+  }
+
+  .table-responsive {
+    overflow-x: auto;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 1000px;
+  }
+
+  .data-table thead th {
+    background: linear-gradient(135deg, var(--primary-light), var(--gray));
+    padding: 15px;
+    text-align: left;
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--dark);
+    border-bottom: 2px solid var(--primary);
+  }
+
+  .data-table tbody td {
+    padding: 15px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    vertical-align: middle;
+  }
+
+  .data-table tbody tr:hover {
+    background: rgba(0, 200, 83, 0.05);
+  }
+
+  .order-number {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    color: var(--primary);
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .status-1 { background: #ff9800; color: white; }
+  .status-2 { background: #2196f3; color: white; }
+  .status-3 { background: #4caf50; color: white; }
+  .status-4 { background: #9c27b0; color: white; }
+  .status-5 { background: #00bcd4; color: white; }
+  .status-6 { background: #8bc34a; color: white; }
+  .status-7 { background: #009688; color: white; }
+  .status-8 { background: #f44336; color: white; }
+
+  .amount {
+    font-family: 'Playfair Display', serif;
+    font-weight: 800;
+    color: var(--primary);
+    font-size: 1.1rem;
+  }
+
+  .actions-cell {
+    white-space: nowrap;
+  }
+
+  .btn-icon {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 0 3px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: var(--transition);
+    cursor: pointer;
+    border: none;
+    font-size: 1rem;
+  }
+
+  .btn-icon.view {
+    background: rgba(0, 200, 83, 0.1);
+    color: var(--primary);
+  }
+
+  .btn-icon.view:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.05);
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 60px;
+    color: #999;
+    font-size: 1.1rem;
+  }
+
+  .text-center {
+    text-align: center;
+  }
+
+  @media (max-width: 768px) {
+    .admin-header {
+      flex-direction: column;
+      gap: 15px;
+      align-items: flex-start;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .filters-bar {
+      flex-direction: column;
+    }
+
+    .filter-group {
+      width: 100%;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<main>
+  <div class="admin-container">
+    <div class="admin-header">
+      <h1>Управление заказами</h1>
+    </div>
+
+    <!-- Статистика -->
+    <div class="stats-grid">
+      <div class="stat-card" data-status="all">
+        <div class="stat-number">{{ orders|length }}</div>
+        <div class="stat-label">Всего заказов</div>
+      </div>
+      {% set status_groups = orders|groupby('status_id') %}
+      {% for status in statuses %}
+        {% set count = orders|selectattr('status_id', 'equalto', status.id)|list|length %}
+        {% if count > 0 %}
+        <div class="stat-card" data-status="{{ status.id }}">
+          <div class="stat-number">{{ count }}</div>
+          <div class="stat-label">{{ status.name }}</div>
+        </div>
+        {% endif %}
       {% endfor %}
-    </tbody>
-  </table>
-</div>
+    </div>
+
+    <!-- Фильтры -->
+    <div class="filters-bar">
+      <div class="filter-group">
+        <label>Поиск по номеру или пользователю</label>
+        <input type="text" id="searchOrder" placeholder="№ заказа, email или телефон..." autocomplete="off">
+      </div>
+      <div class="filter-group">
+        <label>Дата от</label>
+        <input type="date" id="dateFrom">
+      </div>
+      <div class="filter-group">
+        <label>Дата до</label>
+        <input type="date" id="dateTo">
+      </div>
+      <div class="filter-group">
+        <label>Сумма от (₽)</label>
+        <input type="number" id="amountFrom" placeholder="0">
+      </div>
+      <div class="filter-group">
+        <label>Сумма до (₽)</label>
+        <input type="number" id="amountTo" placeholder="∞">
+      </div>
+      <button class="btn-filter" onclick="applyFilters()">Применить</button>
+      <button class="btn-reset" onclick="resetFilters()">Сбросить</button>
+    </div>
+
+    <div class="table-responsive">
+      <table class="data-table" id="ordersTable">
+        <thead>
+          <tr>
+            <th>№ заказа</th>
+            <th>Пользователь</th>
+            <th>Сумма</th>
+            <th>Статус</th>
+            <th>Адрес доставки</th>
+            <th>Дата</th>
+            <th>Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for order in orders %}
+          <tr data-status="{{ order.status_id }}">
+            <td class="order-number">{{ order.order_number }}</td>
+            <td>
+              <strong>{{ order.username }}</strong><br>
+              <small style="color: #666;">{{ order.email }}</small>
+            </td>
+            <td class="amount">{{ "%.2f"|format(order.total_amount) }} ₽</td>
+            <td>
+              <span class="status-badge status-{{ order.status_id }}">
+                {% if order.status_id == 1 %}Новый
+                {% elif order.status_id == 2 %}Ожидает оплаты
+                {% elif order.status_id == 3 %}Оплачен
+                {% elif order.status_id == 4 %}В обработке
+                {% elif order.status_id == 5 %}Отправлен
+                {% elif order.status_id == 6 %}Доставлен
+                {% elif order.status_id == 7 %}Завершён
+                {% elif order.status_id == 8 %}Отменён
+                {% endif %}
+              </span>
+            </td>
+            <td>
+              <small title="{{ order.full_address }}">
+                {{ order.full_address[:60] }}{% if order.full_address|length > 60 %}...{% endif %}
+              </small>
+            </td>
+            <td>{{ order.created_at.strftime('%d.%m.%Y %H:%M') if order.created_at else '—' }}</td>
+            <td class="actions-cell">
+              <a href="{{ url_for('admin.orders.order_detail', order_id=order.id) }}" 
+                 class="btn-icon view" 
+                 title="Просмотреть заказ">
+                <img src="{{ url_for('static', filename='icons/view.png') }}" class="icon" alt="Просмотреть">
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="text-center empty-state">
+              📭 Нет заказов
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<script>
+  // Фильтрация по статусу через клик на статистику
+  document.querySelectorAll('.stat-card').forEach(card => {
+    card.addEventListener('click', function() {
+      const status = this.dataset.status;
+      
+      // Убираем активный класс со всех карточек
+      document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+      this.classList.add('active');
+      
+      // Показываем/скрываем строки
+      const rows = document.querySelectorAll('#ordersTable tbody tr');
+      rows.forEach(row => {
+        if (status === 'all') {
+          row.style.display = '';
+        } else {
+          if (row.dataset.status === status) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        }
+      });
+    });
+  });
+
+  function applyFilters() {
+    const search = document.getElementById('searchOrder').value.toLowerCase();
+    const dateFrom = document.getElementById('dateFrom').value;
+    const dateTo = document.getElementById('dateTo').value;
+    const amountFrom = parseFloat(document.getElementById('amountFrom').value) || 0;
+    const amountTo = parseFloat(document.getElementById('amountTo').value) || Infinity;
+    
+    const rows = document.querySelectorAll('#ordersTable tbody tr');
+    
+    rows.forEach(row => {
+      let show = true;
+      
+      // Поиск по номеру или пользователю
+      if (search) {
+        const orderNumber = row.cells[0]?.textContent.toLowerCase() || '';
+        const userEmail = row.cells[1]?.textContent.toLowerCase() || '';
+        if (!orderNumber.includes(search) && !userEmail.includes(search)) {
+          show = false;
+        }
+      }
+      
+      // Фильтр по дате
+      if (show && dateFrom) {
+        const dateCell = row.cells[5]?.textContent || '';
+        const orderDate = dateCell.split(' ')[0].split('.').reverse().join('-');
+        if (orderDate < dateFrom) show = false;
+      }
+      
+      if (show && dateTo) {
+        const dateCell = row.cells[5]?.textContent || '';
+        const orderDate = dateCell.split(' ')[0].split('.').reverse().join('-');
+        if (orderDate > dateTo) show = false;
+      }
+      
+      // Фильтр по сумме
+      if (show) {
+        const amountText = row.cells[2]?.textContent.replace('₽', '').trim();
+        const amount = parseFloat(amountText) || 0;
+        if (amount < amountFrom || amount > amountTo) show = false;
+      }
+      
+      row.style.display = show ? '' : 'none';
+    });
+  }
+
+  function resetFilters() {
+    document.getElementById('searchOrder').value = '';
+    document.getElementById('dateFrom').value = '';
+    document.getElementById('dateTo').value = '';
+    document.getElementById('amountFrom').value = '';
+    document.getElementById('amountTo').value = '';
+    
+    // Сброс фильтрации статуса
+    document.querySelectorAll('.stat-card').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('#ordersTable tbody tr').forEach(row => {
+      row.style.display = '';
+    });
+  }
+
+  // Добавляем поиск при вводе (debounced)
+  let searchTimeout;
+  document.getElementById('searchOrder').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applyFilters, 300);
+  });
+</script>
 {% endblock %}

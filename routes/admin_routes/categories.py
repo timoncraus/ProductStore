@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from routes.admin import admin_bp
 from decorators import admin_required
 from helpers import get_db_connection
 from mysql.connector import Error
@@ -55,7 +54,7 @@ def category_add():
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_categories'))
+    return redirect(url_for('admin.categories.categories'))
 
 @categories_bp.route('/edit/<int:category_id>', methods=['POST'])
 @admin_required
@@ -84,7 +83,7 @@ def category_edit(category_id):
             finally:
                 conn.close()
     
-    return redirect(url_for('admin.admin_categories'))
+    return redirect(url_for('admin.categories.categories'))
 
 @categories_bp.route('/delete/<int:category_id>')
 @admin_required
@@ -107,4 +106,4 @@ def category_delete(category_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_categories'))
+    return redirect(url_for('admin.categories.categories'))

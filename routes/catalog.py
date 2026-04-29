@@ -153,7 +153,6 @@ def product_detail(product_id):
     """Детальная страница товара"""
     conn = get_db_connection()
     product = None
-    in_wishlist = False
     
     if conn:
         cursor = conn.cursor(dictionary=True)
@@ -166,14 +165,8 @@ def product_detail(product_id):
             """, (product_id,))
             product = cursor.fetchone()
             
-            if product:
-                
-                if session.get('user_id'):
-                    cursor.execute("""
-                        SELECT 1 FROM wishlist WHERE user_id = %s AND product_id = %s
-                    """, (session['user_id'], product_id))
-                    in_wishlist = cursor.fetchone() is not None
-                
+            # Удален блок с проверкой wishlist, так как таблицы больше нет
+            
         except Error as e:
             print(f"Ошибка: {e}")
             flash(f'Ошибка загрузки товара: {e}', 'danger')
@@ -186,4 +179,4 @@ def product_detail(product_id):
     
     return render_template('user/product_detail.html', 
                           product=product, 
-                          in_wishlist=in_wishlist)
+                          in_wishlist=False)

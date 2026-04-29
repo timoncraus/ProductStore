@@ -1,0 +1,346 @@
+{% extends "base.html" %}
+
+{% block title %}Пользователь: {{ user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+  .user-detail-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 20px;
+  }
+
+  .user-card {
+    background: var(--white);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+  }
+
+  .user-header {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    padding: 40px;
+    text-align: center;
+    color: white;
+  }
+
+  .user-avatar-large {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+    border: 4px solid white;
+    box-shadow: var(--shadow-md);
+    color: var(--primary);
+  }
+
+  .user-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    margin: 10px 0;
+  }
+
+  .user-header p {
+    opacity: 0.95;
+  }
+
+  .user-info-section {
+    padding: 30px;
+  }
+
+  .info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    margin-bottom: 30px;
+  }
+
+  .info-card {
+    background: var(--light);
+    padding: 20px;
+    border-radius: var(--radius-lg);
+    border-left: 4px solid var(--primary);
+  }
+
+  .info-label {
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #666;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .info-label img {
+    width: 16px;
+    height: 16px;
+  }
+
+  .info-value {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--dark);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .status-badge img {
+    width: 14px;
+    height: 14px;
+  }
+
+  .status-active {
+    background: rgba(0, 200, 83, 0.2);
+    color: var(--primary-dark);
+  }
+
+  .status-inactive {
+    background: rgba(255, 82, 82, 0.2);
+    color: var(--danger);
+  }
+
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  .role-badge img {
+    width: 14px;
+    height: 14px;
+  }
+
+  .role-admin {
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    color: white;
+  }
+
+  .role-user {
+    background: #e0e0e0;
+    color: #666;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 30px;
+    padding-top: 30px;
+    border-top: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 28px;
+    border-radius: var(--radius-md);
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    text-decoration: none;
+    transition: var(--transition);
+    font-size: 0.85rem;
+  }
+
+  .btn img {
+    width: 18px;
+    height: 18px;
+  }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+    color: white;
+  }
+
+  .btn-danger {
+    background: linear-gradient(135deg, var(--danger), #ff1744);
+    color: white;
+  }
+
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-outline img {
+    filter: brightness(0) saturate(100%) invert(48%) sepia(79%) saturate(2476%) hue-rotate(86deg) brightness(118%) contrast(119%);
+  }
+
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+  }
+
+  @media (max-width: 768px) {
+    .user-detail-container {
+      padding: 15px;
+      margin: 20px;
+    }
+    
+    .user-header {
+      padding: 25px;
+    }
+    
+    .info-grid {
+      grid-template-columns: 1fr;
+    }
+    
+    .action-buttons {
+      flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+      justify-content: center;
+    }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="user-detail-container">
+  <div class="user-card">
+    <div class="user-header">
+      <div class="user-avatar-large">
+        {{ user.username[0]|upper if user.username else 'U' }}
+      </div>
+      <h1>{{ user.last_name }} {{ user.first_name }}</h1>
+      <p>@{{ user.username }}</p>
+    </div>
+
+    <div class="user-info-section">
+      <div class="info-grid">
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/email.png') }}" alt="Email">
+            Email
+          </div>
+          <div class="info-value">{{ user.email }}</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/phone.png') }}" alt="Телефон">
+            Телефон
+          </div>
+          <div class="info-value">{{ user.phone or 'Не указан' }}</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/role.png') }}" alt="Роль">
+            Роль
+          </div>
+          <div class="info-value">
+            <span class="role-badge {% if user.role == 'admin' %}role-admin{% else %}role-user{% endif %}">
+              <img src="{{ url_for('static', filename='icons/admin.png') if user.role == 'admin' else url_for('static', filename='icons/user.png') }}" 
+                   alt="{% if user.role == 'admin' %}Администратор{% else %}Пользователь{% endif %}">
+              {% if user.role == 'admin' %}Администратор{% else %}Пользователь{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/status.png') }}" alt="Статус">
+            Статус
+          </div>
+          <div class="info-value">
+            <span class="status-badge {% if user.is_active %}status-active{% else %}status-inactive{% endif %}">
+              <img src="{{ url_for('static', filename='icons/active.png') if user.is_active else url_for('static', filename='icons/blocked.png') }}" 
+                   alt="{% if user.is_active %}Активен{% else %}Заблокирован{% endif %}">
+              {% if user.is_active %}Активен{% else %}Заблокирован{% endif %}
+            </span>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/orders.png') }}" alt="Заказы">
+            Количество заказов
+          </div>
+          <div class="info-value">{{ user.orders_count or 0 }} шт.</div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/total.png') }}" alt="Сумма">
+            Сумма заказов
+          </div>
+          <div class="info-value">
+            {% if user.total_spent and user.total_spent > 0 %}
+              {{ "%.2f"|format(user.total_spent) }} ₽
+            {% else %}
+              0 ₽
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/calendar.png') }}" alt="Дата регистрации">
+            Дата регистрации
+          </div>
+          <div class="info-value">{{ user.created_at.strftime('%d.%m.%Y %H:%M') if user.created_at else 'Не указана' }}</div>
+        </div>
+
+        {% if user.last_login %}
+        <div class="info-card">
+          <div class="info-label">
+            <img src="{{ url_for('static', filename='icons/last-login.png') }}" alt="Последний вход">
+            Последний вход
+          </div>
+          <div class="info-value">{{ user.last_login.strftime('%d.%m.%Y %H:%M') if user.last_login else 'Не указан' }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+      <div class="action-buttons">
+        <a href="{{ url_for('admin.users.users') }}" class="btn btn-outline">
+          <img src="{{ url_for('static', filename='icons/back.png') }}" alt="Назад">
+          Назад к списку
+        </a>
+        <a href="{{ url_for('admin.users.user_toggle', user_id=user.id) }}" 
+           class="btn {% if user.is_active %}btn-danger{% else %}btn-primary{% endif %}"
+           onclick="return confirm('{% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %} пользователя?')">
+          <img src="{{ url_for('static', filename='icons/lock.png') if user.is_active else url_for('static', filename='icons/unlock.png') }}" 
+               alt="{% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %}">
+          {% if user.is_active %}Заблокировать{% else %}Разблокировать{% endif %}
+        </a>
+        {% if not user.orders_count or user.orders_count == 0 %}
+          <a href="{{ url_for('admin.users.user_delete', user_id=user.id) }}" 
+             class="btn btn-danger"
+             onclick="return confirm('Удалить пользователя навсегда?')">
+            <img src="{{ url_for('static', filename='icons/delete.png') }}" alt="Удалить">
+            Удалить
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

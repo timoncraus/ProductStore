@@ -381,3 +381,43 @@
 .form-group {
     position: relative;
 }
+
+.order-number-link {
+    color: #1a472a;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.order-number-link:hover {
+    color: #2ecc71;
+    text-decoration: underline;
+}
+
+.order-actions-mini {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #2ecc71;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0;
+    font-size: 14px;
+}
+
+.btn-link:hover {
+    text-decoration: underline;
+}
+
+.btn-link-danger {
+    color: #dc3545;
+}
+
+.btn-link-danger:hover {
+    color: #c82333;
+}

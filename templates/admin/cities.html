@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Управление странами{% endblock %}
+{% block title %}Управление городами{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -68,7 +68,7 @@
   .data-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 800px;
   }
 
   .data-table thead th {
@@ -92,6 +92,11 @@
 
   .data-table tbody tr:hover {
     background: rgba(0, 200, 83, 0.05);
+  }
+
+  .location-path {
+    font-size: 0.85rem;
+    color: #666;
   }
 
   .badge {
@@ -208,7 +213,7 @@
     letter-spacing: 0.5px;
   }
 
-  .form-control {
+  .form-control, .form-select {
     width: 100%;
     padding: 12px 15px;
     border: 2px solid rgba(0, 0, 0, 0.1);
@@ -218,7 +223,7 @@
     transition: var(--transition);
   }
 
-  .form-control:focus {
+  .form-control:focus, .form-select:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px rgba(0, 200, 83, 0.1);
@@ -299,14 +304,14 @@
 <main>
   <div class="admin-container">
     <div class="admin-header">
-      <h1>Управление странами</h1>
-      <button class="btn btn-primary" onclick="showAddModal()">Добавить страну</button>
+      <h1>Управление городами</h1>
+      <button class="btn btn-primary" onclick="showAddModal()">Добавить город</button>
     </div>
 
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-number">{{ countries|length }}</div>
-        <div class="stat-label">Всего стран</div>
+        <div class="stat-number">{{ cities|length }}</div>
+        <div class="stat-label">Всего городов</div>
       </div>
     </div>
 
@@ -315,54 +320,62 @@
         <thead>
           <tr>
             <th>ID</th>
-            <th>Название страны</th>
-            <th>Код</th>
-            <th>Регионов</th>
+            <th>Название города</th>
+            <th>Расположение</th>
+            <th>Улиц</th>
             <th>Действия</th>
           </tr>
         </thead>
         <tbody>
-          {% for country in countries %}
+          {% for city in cities %}
           <tr>
-            <td>{{ country.id }}</td>
-            <td><strong>{{ country.name }}</strong></td>
-            <td><span class="badge">{{ country.code or '-' }}</span></td>
-            <td>{{ country.regions_count or 0 }}</td>
+            <td>{{ city.id }}</td>
+            <td><strong>{{ city.name }}</strong></td>
+            <td>
+              <div class="location-path">
+                {{ city.country_name }} -> {{ city.region_name }}
+              </div>
+            </td>
+            <td><span class="badge">{{ city.streets_count or 0 }}</span></td>
             <td class="actions-cell">
-              <button onclick="editCountry({{ country.id }}, '{{ country.name }}', '{{ country.code or '' }}')" class="btn-icon edit" title="Редактировать">
+              <button onclick="editCity({{ city.id }}, '{{ city.name }}', {{ city.region_id }})" class="btn-icon edit" title="Редактировать">
                 <img src="{{ url_for('static', filename='icons/edit.png') }}" alt="Редактировать" class="icon">
               </button>
-              <a href="{{ url_for('admin.reference.country_delete', country_id=country.id) }}" class="btn-icon delete" title="Удалить" onclick="return confirm('Удалить страну «{{ country.name }}»?\\nВсе связанные регионы, города и улицы также будут удалены!')">
+              <a href="{{ url_for('admin.reference.city_delete', city_id=city.id) }}" class="btn-icon delete" title="Удалить" onclick="return confirm('Удалить город «{{ city.name }}»?\\nВсе связанные улицы также будут удалены!')">
                 <img src="{{ url_for('static', filename='icons/trash.png') }}" alt="Удалить" class="icon">  
               </a>
             </td>
-           </tr>
+          </tr>
           {% else %}
           <tr>
-            <td colspan="5" class="empty-state">Нет стран. Нажмите "Добавить страну"</td>
+            <td colspan="5" class="empty-state">Нет городов. Нажмите "Добавить город"</td>
           </tr>
           {% endfor %}
         </tbody>
-       </table>
+      </table>
     </div>
   </div>
 </main>
 
 <!-- Модальное окно -->
-<div id="countryModal" class="modal">
+<div id="cityModal" class="modal">
   <div class="modal-content">
     <span class="close" onclick="closeModal()">&times;</span>
-    <h2 id="modalTitle">Добавить страну</h2>
-    <form id="countryForm" method="POST">
-      <input type="hidden" id="countryId" name="country_id">
+    <h2 id="modalTitle">Добавить город</h2>
+    <form id="cityForm" method="POST">
+      <input type="hidden" id="cityId" name="city_id">
       <div class="form-group">
-        <label>Название страны *</label>
-        <input type="text" id="countryName" name="name" required class="form-control" placeholder="Например: Россия">
+        <label>Регион *</label>
+        <select id="regionId" name="region_id" class="form-select" required>
+          <option value="">Выберите регион</option>
+          {% for region in regions %}
+          <option value="{{ region.id }}">{{ region.country_name }} → {{ region.name }}</option>
+          {% endfor %}
+        </select>
       </div>
       <div class="form-group">
-        <label>Код страны</label>
-        <input type="text" id="countryCode" name="code" class="form-control" maxlength="10" placeholder="Например: RU">
-        <small style="color: #666; display: block; margin-top: 5px;">Двухбуквенный код страны (ISO 3166-1)</small>
+        <label>Название города *</label>
+        <input type="text" id="cityName" name="name" required class="form-control" placeholder="Например: Москва">
       </div>
       <div class="form-buttons">
         <button type="submit" class="btn btn-primary">Сохранить</button>
@@ -374,29 +387,29 @@
 
 <script>
   function showAddModal() {
-    document.getElementById('modalTitle').textContent = 'Добавить страну';
-    document.getElementById('countryId').value = '';
-    document.getElementById('countryName').value = '';
-    document.getElementById('countryCode').value = '';
-    document.getElementById('countryForm').action = "{{ url_for('admin.reference.country_add') }}";
-    document.getElementById('countryModal').style.display = 'block';
+    document.getElementById('modalTitle').textContent = 'Добавить город';
+    document.getElementById('cityId').value = '';
+    document.getElementById('cityName').value = '';
+    document.getElementById('regionId').value = '';
+    document.getElementById('cityForm').action = "{{ url_for('admin.reference.city_add') }}";
+    document.getElementById('cityModal').style.display = 'block';
   }
 
-  function editCountry(id, name, code) {
-    document.getElementById('modalTitle').textContent = 'Редактировать страну';
-    document.getElementById('countryId').value = id;
-    document.getElementById('countryName').value = name;
-    document.getElementById('countryCode').value = code;
-    document.getElementById('countryForm').action = "{{ url_for('admin.reference.country_edit', country_id=0) }}".replace('0', id);
-    document.getElementById('countryModal').style.display = 'block';
+  function editCity(id, name, regionId) {
+    document.getElementById('modalTitle').textContent = 'Редактировать город';
+    document.getElementById('cityId').value = id;
+    document.getElementById('cityName').value = name;
+    document.getElementById('regionId').value = regionId;
+    document.getElementById('cityForm').action = "{{ url_for('admin.reference.city_edit', city_id=0) }}".replace('0', id);
+    document.getElementById('cityModal').style.display = 'block';
   }
 
   function closeModal() {
-    document.getElementById('countryModal').style.display = 'none';
+    document.getElementById('cityModal').style.display = 'none';
   }
 
   window.onclick = function(event) {
-    const modal = document.getElementById('countryModal');
+    const modal = document.getElementById('cityModal');
     if (event.target == modal) {
       modal.style.display = 'none';
     }

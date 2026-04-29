@@ -1,5 +1,4 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash
-from routes.admin import admin_bp
 from decorators import admin_required
 from helpers import get_db_connection
 from mysql.connector import Error
@@ -80,7 +79,7 @@ def products_add():
                           image_url, image_alt))
                     conn.commit()
                     flash(f'Товар "{name}" успешно добавлен!', 'success')
-                    return redirect(url_for('admin.admin_products'))
+                    return redirect(url_for('admin.products.products'))
                 except Error as e:
                     conn.rollback()
                     flash(f'Ошибка: {str(e)}', 'danger')
@@ -129,7 +128,7 @@ def products_edit(product_id):
                       image_url, image_alt, product_id))
                 conn.commit()
                 flash('Товар обновлён', 'success')
-                return redirect(url_for('admin.admin_products'))
+                return redirect(url_for('admin.products.products'))
             
             cursor.execute("SELECT * FROM product WHERE id = %s", (product_id,))
             product = cursor.fetchone()
@@ -145,7 +144,7 @@ def products_edit(product_id):
     
     if not product:
         flash('Товар не найден', 'danger')
-        return redirect(url_for('admin.admin_products'))
+        return redirect(url_for('admin.products.products'))
     
     return render_template('admin/product_edit.html', product=product, categories=categories)
 
@@ -156,7 +155,6 @@ def products_delete(product_id):
     if conn:
         cursor = conn.cursor()
         try:
-            # Проверяем, есть ли заказы с этим товаром
             cursor.execute("SELECT COUNT(*) FROM order_item WHERE product_id = %s", (product_id,))
             if cursor.fetchone()[0] > 0:
                 flash('Нельзя удалить товар - он есть в заказах', 'danger')
@@ -169,4 +167,4 @@ def products_delete(product_id):
         finally:
             conn.close()
     
-    return redirect(url_for('admin.admin_products'))
+    return redirect(url_for('admin.products.products'))
