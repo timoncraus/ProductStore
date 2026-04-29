@@ -15,9 +15,10 @@ def products():
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT p.*, c.name as category_name
+                SELECT p.*, c.name as category_name, u.name as unit_name, u.short_name as unit_short
                 FROM product p
                 LEFT JOIN category c ON p.category_id = c.id
+                LEFT JOIN unit u ON p.unit_id = u.id
                 ORDER BY p.created_at DESC
             """)
             products = cursor.fetchall()
@@ -38,12 +39,16 @@ def products():
 def products_add():
     conn = get_db_connection()
     categories = []
+    units = []
     
     if conn:
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("SELECT id, name FROM category ORDER BY sort_order, name")
             categories = cursor.fetchall()
+            
+            cursor.execute("SELECT id, name, short_name FROM unit ORDER BY sort_order")
+            units = cursor.fetchall()
         except Error as e:
             flash(f'Ошибка: {e}', 'danger')
         finally:
@@ -55,15 +60,15 @@ def products_add():
         price = request.form.get('price', type=float)
         old_price = request.form.get('old_price', type=float) or None
         category_id = request.form.get('category_id', type=int)
+        unit_id = request.form.get('unit_id', type=int)
         stock = request.form.get('stock', type=int, default=0)
-        unit = request.form.get('unit', 'шт')
         is_new = request.form.get('is_new') == 'on'
         is_hit = request.form.get('is_hit') == 'on'
         image_url = request.form.get('image_url', '/static/images/products/default-product.jpg')
         image_alt = request.form.get('image_alt', name)
         
-        if not name or not price or not category_id:
-            flash('Заполните обязательные поля (Название, Цена, Категория)', 'danger')
+        if not name or not price or not category_id or not unit_id:
+            flash('Заполните обязательные поля (Название, Цена, Категория, Единица измерения)', 'danger')
         else:
             conn = get_db_connection()
             if conn:
@@ -71,11 +76,11 @@ def products_add():
                 try:
                     cursor.execute("""
                         INSERT INTO product (name, description, price, old_price, 
-                                           category_id, stock, unit, is_new, is_hit,
+                                           category_id, unit_id, stock, is_new, is_hit,
                                            image_url, image_alt)
                         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """, (name, description, price, old_price, 
-                          category_id, stock, unit, is_new, is_hit,
+                          category_id, unit_id, stock, is_new, is_hit,
                           image_url, image_alt))
                     conn.commit()
                     flash(f'Товар "{name}" успешно добавлен!', 'success')
@@ -86,7 +91,7 @@ def products_add():
                 finally:
                     conn.close()
     
-    return render_template('admin/product_add.html', categories=categories)
+    return render_template('admin/product_add.html', categories=categories, units=units)
 
 @products_bp.route('/edit/<int:product_id>', methods=['GET', 'POST'])
 @admin_required
@@ -94,6 +99,7 @@ def products_edit(product_id):
     conn = get_db_connection()
     product = None
     categories = []
+    units = []
     
     if conn:
         cursor = conn.cursor(dictionary=True)
@@ -101,14 +107,17 @@ def products_edit(product_id):
             cursor.execute("SELECT id, name FROM category ORDER BY sort_order, name")
             categories = cursor.fetchall()
             
+            cursor.execute("SELECT id, name, short_name FROM unit ORDER BY sort_order")
+            units = cursor.fetchall()
+            
             if request.method == 'POST':
                 name = request.form.get('name', '').strip()
                 description = request.form.get('description', '')
                 price = request.form.get('price', type=float)
                 old_price = request.form.get('old_price', type=float) or None
                 category_id = request.form.get('category_id', type=int)
+                unit_id = request.form.get('unit_id', type=int)
                 stock = request.form.get('stock', type=int, default=0)
-                unit = request.form.get('unit', 'шт')
                 is_active = request.form.get('is_active') == 'on'
                 is_new = request.form.get('is_new') == 'on'
                 is_hit = request.form.get('is_hit') == 'on'
@@ -118,12 +127,12 @@ def products_edit(product_id):
                 cursor.execute("""
                     UPDATE product 
                     SET name=%s, description=%s, price=%s, old_price=%s,
-                        category_id=%s, stock=%s, unit=%s,
+                        category_id=%s, unit_id=%s, stock=%s,
                         is_active=%s, is_new=%s, is_hit=%s,
                         image_url=%s, image_alt=%s
                     WHERE id=%s
                 """, (name, description, price, old_price,
-                      category_id, stock, unit,
+                      category_id, unit_id, stock,
                       is_active, is_new, is_hit,
                       image_url, image_alt, product_id))
                 conn.commit()
@@ -146,7 +155,7 @@ def products_edit(product_id):
         flash('Товар не найден', 'danger')
         return redirect(url_for('admin.products.products'))
     
-    return render_template('admin/product_edit.html', product=product, categories=categories)
+    return render_template('admin/product_edit.html', product=product, categories=categories, units=units)
 
 @products_bp.route('/delete/<int:product_id>')
 @admin_required

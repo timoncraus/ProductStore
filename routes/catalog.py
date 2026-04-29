@@ -21,9 +21,10 @@ def catalog():
         cursor = conn.cursor(dictionary=True)
         
         query = """
-            SELECT p.*, c.name as category_name
+            SELECT p.*, c.name as category_name, u.short_name as unit_name
             FROM product p
             JOIN category c ON p.category_id = c.id
+            JOIN unit u ON p.unit_id = u.id
             WHERE p.is_active = TRUE
         """
         count_query = "SELECT COUNT(*) as total FROM product p WHERE p.is_active = TRUE"
@@ -110,9 +111,10 @@ def search_page():
                     print(f"  ID: {prod['id']}, Name: {prod['name']}, Desc: {prod['description'][:50] if prod['description'] else 'None'}")
                 
                 cursor.execute("""
-                    SELECT p.*, c.name as category_name
+                    SELECT p.*, c.name as category_name, u.short_name as unit_name
                     FROM product p
                     JOIN category c ON p.category_id = c.id
+                    JOIN unit u ON p.unit_id = u.id
                     WHERE p.is_active = TRUE 
                     AND (p.name LIKE %s OR p.description LIKE %s)
                     ORDER BY p.sales_count DESC, p.created_at DESC
@@ -158,9 +160,10 @@ def product_detail(product_id):
         cursor = conn.cursor(dictionary=True)
         try:
             cursor.execute("""
-                SELECT p.*, c.name as category_name
+                SELECT p.*, c.name as category_name, u.name as unit_name, u.short_name as unit_short
                 FROM product p
                 JOIN category c ON p.category_id = c.id
+                JOIN unit u ON p.unit_id = u.id
                 WHERE p.id = %s AND p.is_active = TRUE
             """, (product_id,))
             product = cursor.fetchone()

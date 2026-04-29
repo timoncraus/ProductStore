@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block title %}Панель администратора{% endblock %}
+{% extends "base.html" %} 
+{% block title %}Панель администратора{% endblock %}
+
 {% block content %}
 <h1>Панель управления</h1>
 
@@ -26,11 +28,12 @@
   <div class="menu-grid">
     <a href="{{ url_for('admin.products.products') }}" class="menu-item">Товары</a>
     <a href="{{ url_for('admin.categories.categories') }}" class="menu-item">Категории</a>
+    <a href="{{ url_for('admin.units.units') }}" class="menu-item">Единицы измерения</a>
     <a href="{{ url_for('admin.users.users') }}" class="menu-item">Пользователи</a>
     <a href="{{ url_for('admin.orders.orders') }}" class="menu-item">Заказы</a>
     <a href="{{ url_for('admin.reference.countries') }}" class="menu-item">Страны</a>
     <a href="{{ url_for('admin.reference.regions') }}" class="menu-item">Регионы</a>
-    <a href="{{ url_for('admin.reference.cities') }}" class="menu-item">Города (Населенные пункты)</a>
+    <a href="{{ url_for('admin.reference.cities') }}" class="menu-item">Города</a>
     <a href="{{ url_for('admin.reference.streets') }}" class="menu-item">Улицы</a>
   </div>
 </div>

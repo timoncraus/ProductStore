@@ -55,14 +55,16 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Единица измерения</label>
-              <select name="unit" class="form-control">
-                <option value="шт" {% if product.unit == 'шт' %}selected{% endif %}>штука (шт)</option>
-                <option value="кг" {% if product.unit == 'кг' %}selected{% endif %}>килограмм (кг)</option>
-                <option value="г" {% if product.unit == 'г' %}selected{% endif %}>грамм (г)</option>
-                <option value="л" {% if product.unit == 'л' %}selected{% endif %}>литр (л)</option>
-                <option value="мл" {% if product.unit == 'мл' %}selected{% endif %}>миллилитр (мл)</option>
-                <option value="уп" {% if product.unit == 'уп' %}selected{% endif %}>упаковка (уп)</option>
+              <label>Единица измерения *</label>
+              <select name="unit_id" required class="form-control">
+                <option value="">— Выберите единицу измерения —</option>
+                {% for unit in units %}
+                  {% if product.unit_id == unit.id %}
+                    <option value="{{ unit.id }}" selected>{{ unit.name }} ({{ unit.short_name }})</option>
+                  {% else %}
+                    <option value="{{ unit.id }}">{{ unit.name }} ({{ unit.short_name }})</option>
+                  {% endif %}
+                {% endfor %}
               </select>
             </div>
           </div>
@@ -103,19 +105,19 @@
 
           <label class="checkbox-label">
             <input type="checkbox" name="is_active" {% if product.is_active %}checked{% endif %}>
-            Активен
+            ✅ Активен
             <span class="checkbox-desc">Товар отображается на сайте</span>
           </label>
 
           <label class="checkbox-label">
             <input type="checkbox" name="is_new" {% if product.is_new %}checked{% endif %}>
-            Новинка
+            🆕 Новинка
             <span class="checkbox-desc">Отметить как новый товар</span>
           </label>
 
           <label class="checkbox-label">
             <input type="checkbox" name="is_hit" {% if product.is_hit %}checked{% endif %}>
-            Хит продаж
+            🔥 Хит продаж
             <span class="checkbox-desc">Популярный товар</span>
           </label>
         </div>
@@ -123,10 +125,10 @@
 
       <div class="form-buttons">
         <button type="submit" class="btn btn-primary btn-large">
-          Сохранить изменения
+          💾 Сохранить изменения
         </button>
         <a href="{{ url_for('admin.products.products') }}" class="btn btn-outline btn-large">
-          Отмена
+          ❌ Отмена
         </a>
       </div>
     </form>

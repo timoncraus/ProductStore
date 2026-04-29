@@ -1,7 +1,3 @@
--- =====================================================
--- СОЗДАНИЕ БАЗЫ ДАННЫХ product_store
--- =====================================================
-
 DROP DATABASE IF EXISTS product_store;
 CREATE DATABASE product_store;
 USE product_store;
@@ -92,7 +88,17 @@ CREATE TABLE category (
 );
 
 -- =====================================================
--- 8. ТОВАРЫ (без slug и rating)
+-- 8. ЕДИНИЦЫ ИЗМЕРЕНИЯ (НОВАЯ ТАБЛИЦА)
+-- =====================================================
+CREATE TABLE unit (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    short_name VARCHAR(20) NOT NULL,
+    sort_order INT DEFAULT 0
+);
+
+-- =====================================================
+-- 9. ТОВАРЫ (без unit, теперь unit_id)
 -- =====================================================
 CREATE TABLE product (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -103,18 +109,19 @@ CREATE TABLE product (
     image_url VARCHAR(500) DEFAULT '/static/images/products/default-product.jpg',
     image_alt VARCHAR(200),
     category_id INT NOT NULL,
+    unit_id INT NOT NULL,
     stock INT DEFAULT 0,
-    unit VARCHAR(20) DEFAULT 'шт',
     sales_count INT DEFAULT 0,
     is_active BOOLEAN DEFAULT TRUE,
     is_new BOOLEAN DEFAULT FALSE,
     is_hit BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (category_id) REFERENCES category(id)
+    FOREIGN KEY (category_id) REFERENCES category(id),
+    FOREIGN KEY (unit_id) REFERENCES unit(id)
 );
 
 -- =====================================================
--- 9. СТАТУСЫ ЗАКАЗОВ
+-- 10. СТАТУСЫ ЗАКАЗОВ
 -- =====================================================
 CREATE TABLE order_status (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -122,7 +129,7 @@ CREATE TABLE order_status (
 );
 
 -- =====================================================
--- 10. ЗАКАЗЫ (без recipient_name, recipient_phone, используется address_id)
+-- 11. ЗАКАЗЫ (без recipient_name, recipient_phone, используется address_id)
 -- =====================================================
 CREATE TABLE orders (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -139,7 +146,7 @@ CREATE TABLE orders (
 );
 
 -- =====================================================
--- 11. ТОВАРЫ В ЗАКАЗЕ
+-- 12. ТОВАРЫ В ЗАКАЗЕ
 -- =====================================================
 CREATE TABLE order_item (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -153,7 +160,7 @@ CREATE TABLE order_item (
 );
 
 -- =====================================================
--- 12. КОРЗИНА
+-- 13. КОРЗИНА
 -- =====================================================
 CREATE TABLE cart (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -164,7 +171,7 @@ CREATE TABLE cart (
 );
 
 -- =====================================================
--- 13. ТОВАРЫ В КОРЗИНЕ
+-- 14. ТОВАРЫ В КОРЗИНЕ
 -- =====================================================
 CREATE TABLE cart_item (
     id INT PRIMARY KEY AUTO_INCREMENT,
@@ -182,6 +189,7 @@ CREATE TABLE cart_item (
 -- ИНДЕКСЫ ДЛЯ ОПТИМИЗАЦИИ
 -- =====================================================
 CREATE INDEX idx_product_category ON product(category_id);
+CREATE INDEX idx_product_unit ON product(unit_id);
 CREATE INDEX idx_product_price ON product(price);
 CREATE INDEX idx_order_user ON orders(user_id);
 CREATE INDEX idx_order_status ON orders(status_id);

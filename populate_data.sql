@@ -1,7 +1,3 @@
--- =====================================================
--- ОЧИСТКА ВСЕХ ТАБЛИЦ (с учетом внешних ключей)
--- =====================================================
-
 USE product_store;
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -19,6 +15,7 @@ TRUNCATE TABLE region;
 TRUNCATE TABLE country;
 TRUNCATE TABLE user;
 TRUNCATE TABLE product;
+TRUNCATE TABLE unit;  -- Новая таблица
 TRUNCATE TABLE category;
 TRUNCATE TABLE order_status;
 
@@ -30,6 +27,7 @@ ALTER TABLE city AUTO_INCREMENT = 1;
 ALTER TABLE street AUTO_INCREMENT = 1;
 ALTER TABLE address AUTO_INCREMENT = 1;
 ALTER TABLE product AUTO_INCREMENT = 1;
+ALTER TABLE unit AUTO_INCREMENT = 1;  -- Новая таблица
 ALTER TABLE category AUTO_INCREMENT = 1;
 ALTER TABLE orders AUTO_INCREMENT = 1;
 ALTER TABLE order_item AUTO_INCREMENT = 1;
@@ -529,7 +527,18 @@ INSERT INTO address (user_id, street_id, house, apartment, entrance, floor, post
 (3, (SELECT id FROM street WHERE name = 'Постникова' AND city_id = (SELECT id FROM city WHERE name = 'Оренбург') LIMIT 1), '25', '5', '2', 3, '460000', FALSE);
 
 -- =====================================================
--- 7. СТАТУСЫ ЗАКАЗОВ
+-- 7. ЕДИНИЦЫ ИЗМЕРЕНИЯ (НОВАЯ ТАБЛИЦА)
+-- =====================================================
+INSERT INTO unit (name, short_name, sort_order) VALUES
+('килограмм', 'кг', 1),
+('литр', 'л', 2),
+('штука', 'шт', 3),
+('упаковка', 'уп', 4),
+('грамм', 'г', 5),
+('миллилитр', 'мл', 6);
+
+-- =====================================================
+-- 8. СТАТУСЫ ЗАКАЗОВ
 -- =====================================================
 INSERT INTO order_status (name) VALUES 
 ('Новый'), 
@@ -540,7 +549,7 @@ INSERT INTO order_status (name) VALUES
 ('Отменен');
 
 -- =====================================================
--- 8. КАТЕГОРИИ ТОВАРОВ
+-- 9. КАТЕГОРИИ ТОВАРОВ
 -- =====================================================
 INSERT INTO category (id, name, image_url, sort_order) VALUES
 (1, 'Бакалея', '/static/images/categories/grocery.jpg', 1),
@@ -553,84 +562,84 @@ INSERT INTO category (id, name, image_url, sort_order) VALUES
 (8, 'Полуфабрикаты', '/static/images/categories/ready-meals.jpg', 8);
 
 -- =====================================================
--- 9. ТОВАРЫ
+-- 10. ТОВАРЫ (с unit_id вместо unit)
 -- =====================================================
-INSERT INTO product (id, name, description, price, old_price, image_url, category_id, stock, unit, sales_count, is_new, is_hit) VALUES
+INSERT INTO product (id, name, description, price, old_price, image_url, category_id, unit_id, stock, sales_count, is_new, is_hit) VALUES
 -- Бакалея (1-10)
-(1, 'Гречневая крупа "Мистраль"', 'Ядрица высшего сорта. Быстро варится, рассыпчатая.', 89.90, 109.90, '/static/images/products/buckwheat.jpg', 1, 500, 'кг', 1800, FALSE, TRUE),
-(2, 'Рис "Басмати"', 'Длиннозерный рис с ароматом. Идеален для плова.', 159.90, 189.90, '/static/images/products/rice.jpg', 1, 300, 'кг', 980, FALSE, TRUE),
-(3, 'Овсяные хлопья "Геркулес"', 'Классические овсяные хлопья для здорового завтрака.', 79.90, 99.90, '/static/images/products/oatmeal.jpg', 1, 400, 'кг', 2340, FALSE, FALSE),
-(4, 'Макароны Barilla Спагетти', 'Спагетти из твердых сортов пшеницы.', 129.90, NULL, '/static/images/products/pasta.jpg', 1, 200, 'уп', 3450, FALSE, TRUE),
-(5, 'Мука пшеничная в/с', 'Мука высшего сорта. 1 кг.', 59.90, NULL, '/static/images/products/flour.jpg', 1, 600, 'кг', 1200, FALSE, FALSE),
-(6, 'Сахар песок', 'Сахар-песок рафинированный.', 69.90, 79.90, '/static/images/products/sugar.jpg', 1, 800, 'кг', 3400, FALSE, FALSE),
-(7, 'Соль поваренная', 'Соль поваренная пищевая. 1 кг.', 29.90, NULL, '/static/images/products/salt.jpg', 1, 1000, 'кг', 2100, FALSE, FALSE),
-(8, 'Масло подсолнечное', 'Рафинированное дезодорированное масло. 1 л.', 119.90, 139.90, '/static/images/products/oil.jpg', 1, 300, 'л', 890, FALSE, FALSE),
-(9, 'Пшено шлифованное', 'Для рассыпчатых каш.', 59.90, NULL, '/static/images/products/millet.jpg', 1, 250, 'кг', 560, FALSE, FALSE),
-(10, 'Киноа', 'Суперфуд. Без глютена.', 399.90, 499.90, '/static/images/products/quinoa.jpg', 1, 100, 'кг', 340, TRUE, TRUE),
+(1, 'Гречневая крупа "Мистраль"', 'Ядрица высшего сорта. Быстро варится, рассыпчатая.', 89.90, 109.90, '/static/images/products/buckwheat.jpg', 1, 1, 500, 1800, FALSE, TRUE),
+(2, 'Рис "Басмати"', 'Длиннозерный рис с ароматом. Идеален для плова.', 159.90, 189.90, '/static/images/products/rice.jpg', 1, 1, 300, 980, FALSE, TRUE),
+(3, 'Овсяные хлопья "Геркулес"', 'Классические овсяные хлопья для здорового завтрака.', 79.90, 99.90, '/static/images/products/oatmeal.jpg', 1, 1, 400, 2340, FALSE, FALSE),
+(4, 'Макароны Barilla Спагетти', 'Спагетти из твердых сортов пшеницы.', 129.90, NULL, '/static/images/products/pasta.jpg', 1, 4, 200, 3450, FALSE, TRUE),
+(5, 'Мука пшеничная в/с', 'Мука высшего сорта. 1 кг.', 59.90, NULL, '/static/images/products/flour.jpg', 1, 1, 600, 1200, FALSE, FALSE),
+(6, 'Сахар песок', 'Сахар-песок рафинированный.', 69.90, 79.90, '/static/images/products/sugar.jpg', 1, 1, 800, 3400, FALSE, FALSE),
+(7, 'Соль поваренная', 'Соль поваренная пищевая. 1 кг.', 29.90, NULL, '/static/images/products/salt.jpg', 1, 1, 1000, 2100, FALSE, FALSE),
+(8, 'Масло подсолнечное', 'Рафинированное дезодорированное масло. 1 л.', 119.90, 139.90, '/static/images/products/oil.jpg', 1, 2, 300, 890, FALSE, FALSE),
+(9, 'Пшено шлифованное', 'Для рассыпчатых каш.', 59.90, NULL, '/static/images/products/millet.jpg', 1, 1, 250, 560, FALSE, FALSE),
+(10, 'Киноа', 'Суперфуд. Без глютена.', 399.90, 499.90, '/static/images/products/quinoa.jpg', 1, 1, 100, 340, TRUE, TRUE),
 
 -- Молочные продукты (11-20)
-(11, 'Молоко 3.2% "Домик в деревне"', 'Пастеризованное молоко. 1 л.', 89.90, 99.90, '/static/images/products/milk.jpg', 2, 500, 'л', 5200, FALSE, TRUE),
-(12, 'Кефир 2.5%', 'Натуральный кефир. 1 л.', 79.90, NULL, '/static/images/products/kefir.jpg', 2, 400, 'л', 3100, FALSE, FALSE),
-(13, 'Сметана 20%', 'Домашняя сметана. 400 г.', 129.90, 149.90, '/static/images/products/sour-cream.jpg', 2, 200, 'шт', 2300, FALSE, FALSE),
-(14, 'Творог 9%', 'Рассыпчатый творог. 500 г.', 159.90, 179.90, '/static/images/products/cottage-cheese.jpg', 2, 150, 'шт', 1800, FALSE, TRUE),
-(15, 'Сыр "Российский"', 'Твердый сыр 50%. 200 г.', 179.90, 199.90, '/static/images/products/cheese.jpg', 2, 200, 'шт', 890, FALSE, TRUE),
-(16, 'Йогурт Activia натуральный', 'Натуральный йогурт. 125 г.', 75.00, 89.90, '/static/images/products/yogurt.jpg', 2, 1000, 'шт', 3100, TRUE, FALSE),
-(17, 'Масло сливочное 82.5%', 'Крестьянское масло. 180 г.', 149.90, 169.90, '/static/images/products/butter.jpg', 2, 300, 'шт', 2100, FALSE, FALSE),
-(18, 'Ряженка 4%', 'Топленое молоко сквашенное.', 89.90, NULL, '/static/images/products/ryazhenka.jpg', 2, 250, 'л', 1200, FALSE, FALSE),
-(19, 'Сыр "Пармезан"', 'Твердый итальянский сыр.', 1899.00, 2199.00, '/static/images/products/parmesan.jpg', 2, 50, 'кг', 430, TRUE, TRUE),
-(20, 'Моцарелла', 'Мягкий сыр для пиццы.', 399.00, NULL, '/static/images/products/mozzarella.jpg', 2, 150, 'шт', 2100, FALSE, FALSE),
+(11, 'Молоко 3.2% "Домик в деревне"', 'Пастеризованное молоко. 1 л.', 89.90, 99.90, '/static/images/products/milk.jpg', 2, 2, 500, 5200, FALSE, TRUE),
+(12, 'Кефир 2.5%', 'Натуральный кефир. 1 л.', 79.90, NULL, '/static/images/products/kefir.jpg', 2, 2, 400, 3100, FALSE, FALSE),
+(13, 'Сметана 20%', 'Домашняя сметана. 400 г.', 129.90, 149.90, '/static/images/products/sour-cream.jpg', 2, 4, 200, 2300, FALSE, FALSE),
+(14, 'Творог 9%', 'Рассыпчатый творог. 500 г.', 159.90, 179.90, '/static/images/products/cottage-cheese.jpg', 2, 4, 150, 1800, FALSE, TRUE),
+(15, 'Сыр "Российский"', 'Твердый сыр 50%. 200 г.', 179.90, 199.90, '/static/images/products/cheese.jpg', 2, 4, 200, 890, FALSE, TRUE),
+(16, 'Йогурт Activia натуральный', 'Натуральный йогурт. 125 г.', 75.00, 89.90, '/static/images/products/yogurt.jpg', 2, 3, 1000, 3100, TRUE, FALSE),
+(17, 'Масло сливочное 82.5%', 'Крестьянское масло. 180 г.', 149.90, 169.90, '/static/images/products/butter.jpg', 2, 4, 300, 2100, FALSE, FALSE),
+(18, 'Ряженка 4%', 'Топленое молоко сквашенное.', 89.90, NULL, '/static/images/products/ryazhenka.jpg', 2, 2, 250, 1200, FALSE, FALSE),
+(19, 'Сыр "Пармезан"', 'Твердый итальянский сыр.', 1899.00, 2199.00, '/static/images/products/parmesan.jpg', 2, 1, 50, 430, TRUE, TRUE),
+(20, 'Моцарелла', 'Мягкий сыр для пиццы.', 399.00, NULL, '/static/images/products/mozzarella.jpg', 2, 3, 150, 2100, FALSE, FALSE),
 
 -- Мясо и птица (21-25)
-(21, 'Куриное филе охлажденное', 'Охлажденное куриное филе. 1 кг.', 349.90, 399.90, '/static/images/products/chicken.jpg', 3, 150, 'кг', 1450, FALSE, TRUE),
-(22, 'Куриные крылья', 'Для гриля и запекания. 1 кг.', 249.90, NULL, '/static/images/products/wings.jpg', 3, 200, 'кг', 1230, FALSE, FALSE),
-(23, 'Говядина вырезка', 'Нежная говяжья вырезка. 1 кг.', 899.00, 999.00, '/static/images/products/beef.jpg', 3, 80, 'кг', 560, FALSE, TRUE),
-(24, 'Фарш говяжий', 'Натуральный фарш 80/20. 1 кг.', 399.90, 449.90, '/static/images/products/mince.jpg', 3, 120, 'кг', 1320, FALSE, FALSE),
-(25, 'Фарш куриный', 'Нежный куриный фарш. 1 кг.', 299.90, NULL, '/static/images/products/chicken-mince.jpg', 3, 100, 'кг', 670, FALSE, FALSE),
+(21, 'Куриное филе охлажденное', 'Охлажденное куриное филе. 1 кг.', 349.90, 399.90, '/static/images/products/chicken.jpg', 3, 1, 150, 1450, FALSE, TRUE),
+(22, 'Куриные крылья', 'Для гриля и запекания. 1 кг.', 249.90, NULL, '/static/images/products/wings.jpg', 3, 1, 200, 1230, FALSE, FALSE),
+(23, 'Говядина вырезка', 'Нежная говяжья вырезка. 1 кг.', 899.00, 999.00, '/static/images/products/beef.jpg', 3, 1, 80, 560, FALSE, TRUE),
+(24, 'Фарш говяжий', 'Натуральный фарш 80/20. 1 кг.', 399.90, 449.90, '/static/images/products/mince.jpg', 3, 1, 120, 1320, FALSE, FALSE),
+(25, 'Фарш куриный', 'Нежный куриный фарш. 1 кг.', 299.90, NULL, '/static/images/products/chicken-mince.jpg', 3, 1, 100, 670, FALSE, FALSE),
 
 -- Овощи и фрукты (26-32)
-(26, 'Бананы', 'Спелые сладкие бананы. 1 кг.', 129.90, 149.90, '/static/images/products/bananas.jpg', 4, 300, 'кг', 5400, FALSE, TRUE),
-(27, 'Яблоки "Голден"', 'Сочные сладкие яблоки. 1 кг.', 119.90, 139.90, '/static/images/products/apples.jpg', 4, 250, 'кг', 4900, FALSE, TRUE),
-(28, 'Апельсины', 'Сочные апельсины. 1 кг.', 139.90, 159.90, '/static/images/products/oranges.jpg', 4, 200, 'кг', 3800, FALSE, FALSE),
-(29, 'Картофель', 'Молодой картофель. 1 кг.', 59.90, 79.90, '/static/images/products/potatoes.jpg', 4, 800, 'кг', 8900, FALSE, FALSE),
-(30, 'Помидоры', 'Спелые помидоры. 1 кг.', 199.90, 249.90, '/static/images/products/tomatoes.jpg', 4, 150, 'кг', 4500, FALSE, FALSE),
-(31, 'Огурцы', 'Хрустящие огурцы. 1 кг.', 159.90, 199.90, '/static/images/products/cucumbers.jpg', 4, 180, 'кг', 4300, FALSE, FALSE),
-(32, 'Лимоны', 'Свежие лимоны.', 89.90, NULL, '/static/images/products/lemons.jpg', 4, 200, 'кг', 2100, FALSE, FALSE),
+(26, 'Бананы', 'Спелые сладкие бананы. 1 кг.', 129.90, 149.90, '/static/images/products/bananas.jpg', 4, 1, 300, 5400, FALSE, TRUE),
+(27, 'Яблоки "Голден"', 'Сочные сладкие яблоки. 1 кг.', 119.90, 139.90, '/static/images/products/apples.jpg', 4, 1, 250, 4900, FALSE, TRUE),
+(28, 'Апельсины', 'Сочные апельсины. 1 кг.', 139.90, 159.90, '/static/images/products/oranges.jpg', 4, 1, 200, 3800, FALSE, FALSE),
+(29, 'Картофель', 'Молодой картофель. 1 кг.', 59.90, 79.90, '/static/images/products/potatoes.jpg', 4, 1, 800, 8900, FALSE, FALSE),
+(30, 'Помидоры', 'Спелые помидоры. 1 кг.', 199.90, 249.90, '/static/images/products/tomatoes.jpg', 4, 1, 150, 4500, FALSE, FALSE),
+(31, 'Огурцы', 'Хрустящие огурцы. 1 кг.', 159.90, 199.90, '/static/images/products/cucumbers.jpg', 4, 1, 180, 4300, FALSE, FALSE),
+(32, 'Лимоны', 'Свежие лимоны.', 89.90, NULL, '/static/images/products/lemons.jpg', 4, 1, 200, 2100, FALSE, FALSE),
 
 -- Напитки (33-38)
-(33, 'Вода "Святой источник" 1.5л', 'Питьевая вода первой категории.', 49.90, 59.90, '/static/images/products/water.jpg', 5, 2000, 'шт', 8600, FALSE, TRUE),
-(34, 'Сок "Добрый" апельсиновый', 'Сок прямого отжима. 1 л.', 129.90, 149.90, '/static/images/products/juice.jpg', 5, 800, 'шт', 4800, FALSE, FALSE),
-(35, 'Coca-Cola 0.5л', 'Классическая Coca-Cola.', 89.90, 99.90, '/static/images/products/cola.jpg', 5, 1500, 'шт', 12900, FALSE, TRUE),
-(36, 'Квас "Очаковский" 1.5л', 'Натуральный квас брожения.', 129.90, 149.90, '/static/images/products/kvass.jpg', 5, 500, 'шт', 3400, FALSE, FALSE),
-(37, 'Чай Lipton чёрный', 'Чай в пакетиках. 25 шт.', 159.90, 179.90, '/static/images/products/tea.jpg', 5, 300, 'уп', 2100, FALSE, FALSE),
-(38, 'Кофе Jacobs молотый', 'Молотый кофе. 250 г.', 349.90, 399.90, '/static/images/products/coffee.jpg', 5, 200, 'шт', 1560, TRUE, TRUE),
+(33, 'Вода "Святой источник" 1.5л', 'Питьевая вода первой категории.', 49.90, 59.90, '/static/images/products/water.jpg', 5, 3, 2000, 8600, FALSE, TRUE),
+(34, 'Сок "Добрый" апельсиновый', 'Сок прямого отжима. 1 л.', 129.90, 149.90, '/static/images/products/juice.jpg', 5, 3, 800, 4800, FALSE, FALSE),
+(35, 'Coca-Cola 0.5л', 'Классическая Coca-Cola.', 89.90, 99.90, '/static/images/products/cola.jpg', 5, 3, 1500, 12900, FALSE, TRUE),
+(36, 'Квас "Очаковский" 1.5л', 'Натуральный квас брожения.', 129.90, 149.90, '/static/images/products/kvass.jpg', 5, 3, 500, 3400, FALSE, FALSE),
+(37, 'Чай Lipton чёрный', 'Чай в пакетиках. 25 шт.', 159.90, 179.90, '/static/images/products/tea.jpg', 5, 4, 300, 2100, FALSE, FALSE),
+(38, 'Кофе Jacobs молотый', 'Молотый кофе. 250 г.', 349.90, 399.90, '/static/images/products/coffee.jpg', 5, 4, 200, 1560, TRUE, TRUE),
 
 -- Кондитерские изделия (39-44)
-(39, 'Шоколад Milka молочный', 'Молочный шоколад. 90 г.', 129.90, 149.90, '/static/images/products/chocolate.jpg', 6, 600, 'шт', 6500, FALSE, TRUE),
-(40, 'Печенье Oreo', 'Хрустящее печенье с кремом. 150 г.', 99.90, 119.90, '/static/images/products/oreo.jpg', 6, 800, 'шт', 8700, FALSE, TRUE),
-(41, 'Конфеты "Коровка"', 'Молочные конфеты. 500 г.', 199.90, 249.90, '/static/images/products/candies.jpg', 6, 400, 'уп', 3400, FALSE, FALSE),
-(42, 'Пряники тульские', 'Медовые пряники. 300 г.', 89.90, NULL, '/static/images/products/gingerbread.jpg', 6, 500, 'уп', 2300, FALSE, FALSE),
-(43, 'Вафли "Артек"', 'Сливочные вафли. 200 г.', 79.90, 89.90, '/static/images/products/waffles.jpg', 6, 600, 'шт', 2100, FALSE, FALSE),
-(44, 'Зефир ванильный', 'Нежный зефир. 300 г.', 119.90, 139.90, '/static/images/products/zephyr.jpg', 6, 350, 'уп', 1800, TRUE, FALSE),
+(39, 'Шоколад Milka молочный', 'Молочный шоколад. 90 г.', 129.90, 149.90, '/static/images/products/chocolate.jpg', 6, 3, 600, 6500, FALSE, TRUE),
+(40, 'Печенье Oreo', 'Хрустящее печенье с кремом. 150 г.', 99.90, 119.90, '/static/images/products/oreo.jpg', 6, 4, 800, 8700, FALSE, TRUE),
+(41, 'Конфеты "Коровка"', 'Молочные конфеты. 500 г.', 199.90, 249.90, '/static/images/products/candies.jpg', 6, 4, 400, 3400, FALSE, FALSE),
+(42, 'Пряники тульские', 'Медовые пряники. 300 г.', 89.90, NULL, '/static/images/products/gingerbread.jpg', 6, 4, 500, 2300, FALSE, FALSE),
+(43, 'Вафли "Артек"', 'Сливочные вафли. 200 г.', 79.90, 89.90, '/static/images/products/waffles.jpg', 6, 4, 600, 2100, FALSE, FALSE),
+(44, 'Зефир ванильный', 'Нежный зефир. 300 г.', 119.90, 139.90, '/static/images/products/zephyr.jpg', 6, 4, 350, 1800, TRUE, FALSE),
 
 -- Хлеб и выпечка (45-48)
-(45, 'Хлеб "Бородинский"', 'Ржаной хлеб с тмином.', 59.90, 69.90, '/static/images/products/borodinsky.jpg', 7, 400, 'шт', 6500, FALSE, TRUE),
-(46, 'Батон нарезной', 'Пшеничный батон.', 49.90, 59.90, '/static/images/products/white-bread.jpg', 7, 600, 'шт', 8900, FALSE, FALSE),
-(47, 'Лаваш армянский', 'Тонкий лаваш. 300 г.', 39.90, 49.90, '/static/images/products/lavash.jpg', 7, 500, 'шт', 5600, FALSE, FALSE),
-(48, 'Булочка с маком', 'Сдобная булочка.', 29.90, NULL, '/static/images/products/bun.jpg', 7, 700, 'шт', 6700, FALSE, FALSE),
+(45, 'Хлеб "Бородинский"', 'Ржаной хлеб с тмином.', 59.90, 69.90, '/static/images/products/borodinsky.jpg', 7, 3, 400, 6500, FALSE, TRUE),
+(46, 'Батон нарезной', 'Пшеничный батон.', 49.90, 59.90, '/static/images/products/white-bread.jpg', 7, 3, 600, 8900, FALSE, FALSE),
+(47, 'Лаваш армянский', 'Тонкий лаваш. 300 г.', 39.90, 49.90, '/static/images/products/lavash.jpg', 7, 3, 500, 5600, FALSE, FALSE),
+(48, 'Булочка с маком', 'Сдобная булочка.', 29.90, NULL, '/static/images/products/bun.jpg', 7, 3, 700, 6700, FALSE, FALSE),
 
 -- Полуфабрикаты (49-52)
-(49, 'Пельмени "Сибирские"', 'Домашние пельмени. 800 г.', 349.90, 399.90, '/static/images/products/dumplings.jpg', 8, 200, 'уп', 1340, FALSE, FALSE),
-(50, 'Вареники с картошкой', 'Вареники с картофелем. 800 г.', 249.90, 299.90, '/static/images/products/varenyky.jpg', 8, 180, 'уп', 890, FALSE, FALSE),
-(51, 'Пицца "Маргарита"', 'Замороженная пицца. 350 г.', 299.90, 349.90, '/static/images/products/pizza.jpg', 8, 150, 'шт', 1230, FALSE, FALSE),
-(52, 'Котлеты куриные', 'Замороженные котлеты. 400 г.', 249.90, 299.90, '/static/images/products/cutlets.jpg', 8, 120, 'уп', 890, FALSE, FALSE);
+(49, 'Пельмени "Сибирские"', 'Домашние пельмени. 800 г.', 349.90, 399.90, '/static/images/products/dumplings.jpg', 8, 4, 200, 1340, FALSE, FALSE),
+(50, 'Вареники с картошкой', 'Вареники с картофелем. 800 г.', 249.90, 299.90, '/static/images/products/varenyky.jpg', 8, 4, 180, 890, FALSE, FALSE),
+(51, 'Пицца "Маргарита"', 'Замороженная пицца. 350 г.', 299.90, 349.90, '/static/images/products/pizza.jpg', 8, 3, 150, 1230, FALSE, FALSE),
+(52, 'Котлеты куриные', 'Замороженные котлеты. 400 г.', 249.90, 299.90, '/static/images/products/cutlets.jpg', 8, 4, 120, 890, FALSE, FALSE);
 
 -- =====================================================
--- 10. КОРЗИНЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
+-- 11. КОРЗИНЫ ДЛЯ ПОЛЬЗОВАТЕЛЕЙ
 -- =====================================================
 INSERT INTO cart (user_id) VALUES (2), (3), (4), (5);
 
 -- =====================================================
--- 11. ТОВАРЫ В КОРЗИНАХ
+-- 12. ТОВАРЫ В КОРЗИНАХ
 -- =====================================================
 INSERT INTO cart_item (cart_id, product_id, quantity, price) VALUES
 (1, 1, 2, 89.90),
@@ -642,7 +651,7 @@ INSERT INTO cart_item (cart_id, product_id, quantity, price) VALUES
 (4, 40, 1, 99.90);
 
 -- =====================================================
--- 12. ЗАКАЗЫ
+-- 13. ЗАКАЗЫ
 -- =====================================================
 INSERT INTO orders (user_id, order_number, total_amount, address_id, status_id, comment) VALUES
 (2, 'ORD-20241201-0001', 518.80, 1, 4, 'Позвонить за 15 минут'),
@@ -652,7 +661,7 @@ INSERT INTO orders (user_id, order_number, total_amount, address_id, status_id, 
 (2, 'ORD-20241220-0005', 899.00, 2, 1, NULL);
 
 -- =====================================================
--- 13. ТОВАРЫ В ЗАКАЗАХ
+-- 14. ТОВАРЫ В ЗАКАЗАХ
 -- =====================================================
 INSERT INTO order_item (order_id, product_id, product_name, quantity, price) VALUES
 (1, 1, 'Гречневая крупа "Мистраль"', 2, 89.90),
@@ -693,6 +702,16 @@ SELECT c.name as category, COUNT(*) as products_count
 FROM product p 
 JOIN category c ON p.category_id = c.id 
 GROUP BY p.category_id;
+
+-- Проверка единиц измерения
+SELECT 
+    u.name as unit_name,
+    u.short_name as unit_short,
+    COUNT(p.id) as products_count
+FROM unit u
+LEFT JOIN product p ON p.unit_id = u.id
+GROUP BY u.id
+ORDER BY u.sort_order;
 
 -- =====================================================
 -- ВКЛЮЧАЕМ ПРОВЕРКИ ОБРАТНО
